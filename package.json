@@ -11,6 +11,7 @@
         "tauri": "tauri"
     },
     "dependencies": {
+        "@mdi/js": "^7.3.67",
         "@melt-ui/svelte": "^0.56.0",
         "@tauri-apps/api": "^1.5.1",
         "sanitize.css": "^13.0.0",

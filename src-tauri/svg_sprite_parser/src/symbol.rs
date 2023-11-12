@@ -1,7 +1,7 @@
 use svg::node::Attributes;
 use crate::tag::SvgTag;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct SvgSymbol {
     pub contents: Vec<SvgTag>,
     pub attributes: Attributes,
