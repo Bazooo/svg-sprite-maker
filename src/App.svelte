@@ -4,7 +4,7 @@
 
     let hovering = false
     let hovered = 0
-    let spriteExists = false
+    let sprite: string | undefined
 
     listen('tauri://file-drop-hover', () => {
         hovering = true
@@ -18,8 +18,8 @@
         hovered = event.payload
     })
 
-    listen('sprite-changed', () => {
-        spriteExists = true
+    listen<string>('sprite-changed', (event) => {
+        sprite = event.payload
     })
 </script>
 
@@ -35,7 +35,7 @@
                 </span>
             </div>
         {/if}
-        {#if !spriteExists}
+        {#if !sprite}
             <div class="w-full h-full flex justify-center items-center">
                 <span class="select-none">Drop svg file(s)</span>
             </div>
@@ -44,6 +44,12 @@
     <footer class="flex">
 
     </footer>
+</div>
+
+<div class="hidden">
+    {#if sprite}
+        {@html sprite}
+    {/if}
 </div>
 
 <style>
