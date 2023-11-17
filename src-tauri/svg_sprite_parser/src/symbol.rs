@@ -1,9 +1,12 @@
 use std::fmt::Display;
-use svg::node::Attributes;
+use svg::node::{Attributes, Value};
+use rand::{thread_rng, Rng};
+use rand::distributions::Alphanumeric;
 use crate::tag::{string_attributes, SvgTag};
 
 #[derive(Default, Debug, Clone)]
 pub struct SvgSymbol {
+    pub id: String,
     pub contents: Vec<SvgTag>,
     pub attributes: Attributes,
     is_initialized: bool,
@@ -11,6 +14,19 @@ pub struct SvgSymbol {
 
 impl SvgSymbol {
     pub fn init(&mut self, attributes: Attributes) {
+        let mut attributes = attributes;
+
+        let id = match attributes.get("id") {
+            Some(id_attribute) => id_attribute.to_string(),
+            None => {
+                let gen_id = generate_id();
+                attributes.insert("id".to_string(), Value::from(gen_id.to_string()));
+
+                gen_id
+            },
+        };
+
+        self.id = id.to_string();
         self.attributes = attributes;
         self.is_initialized = true;
     }
@@ -42,4 +58,12 @@ impl Display for SvgSymbol {
         string.push("</symbol>".to_string());
         write!(f, "{}", string.join(""))
     }
+}
+
+pub fn generate_id() -> String {
+    thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(10)
+        .map(char::from)
+        .collect()
 }

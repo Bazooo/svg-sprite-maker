@@ -2,15 +2,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod app;
+mod events;
 
 use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
-use svg_sprite_parser::symbol::SvgSymbol;
 use tauri::{FileDropEvent, Manager, WindowEvent};
 use crate::app::ApplicationState;
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_current_sprite])
+        // .invoke_handler(tauri::generate_handler![])
         .manage(ApplicationState::default())
         .setup(|app| {
             let binding = app.windows();
@@ -31,7 +31,7 @@ fn main() {
                                     }
                                 });
 
-                            target_window.emit_to("main", "files-hovered", num_symbols).unwrap();
+                            target_window.emit_to("main", events::FILES_HOVERED, num_symbols).unwrap();
                         }
                         FileDropEvent::Dropped(dropped_files) => {
                             let mut symbols: Vec<_> = dropped_files.iter()
@@ -43,7 +43,7 @@ fn main() {
                                 .collect();
 
                             if symbols.is_empty() {
-                                target_window.emit_to("main", "files-hover-stopped", ()).unwrap();
+                                target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
                                 return;
                             }
 
@@ -52,11 +52,11 @@ fn main() {
 
                             let current_sprite = state.current_sprite.read().unwrap().clone();
 
-                            target_window.emit_to("main", "files-hover-stopped", ()).unwrap();
-                            target_window.emit_to("main", "sprite-changed", get_sprite(current_sprite)).unwrap();
+                            target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
+                            target_window.emit_to("main", events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
                         }
                         _ => {
-                            target_window.emit_to("main", "files-hover-stopped", ()).unwrap();
+                            target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
                         },
                     }
                 }
@@ -66,29 +66,4 @@ fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-fn get_current_sprite(state: tauri::State<ApplicationState>) -> String {
-    let symbols = state.current_sprite.read().unwrap().clone();
-
-    let mut string = vec!["<svg xmlns=\"http://www.w3.org/2000/svg\"><defs>".to_string()];
-
-    for symbol in symbols {
-        string.push(symbol.to_string());
-    }
-
-    string.push("</defs></svg>".to_string());
-    string.join("")
-}
-
-fn get_sprite(symbols: Vec<SvgSymbol>) -> String {
-    let mut string = vec!["<svg xmlns=\"http://www.w3.org/2000/svg\"><defs>".to_string()];
-
-    for symbol in symbols {
-        string.push(symbol.to_string());
-    }
-
-    string.push("</defs></svg>".to_string());
-    string.join("")
 }
