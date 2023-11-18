@@ -3,20 +3,25 @@
 
 mod app;
 mod events;
+mod keybindings;
 
 use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
 use tauri::{FileDropEvent, Manager, WindowEvent};
+use std::collections::HashMap;
 use crate::app::ApplicationState;
+use crate::keybindings::register_keybindings;
 
 fn main() {
     tauri::Builder::default()
-        // .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![get_svg_symbol])
         .manage(ApplicationState::default())
         .setup(|app| {
             let binding = app.windows();
             let main_window = binding.get("main").unwrap();
             let target_window = main_window.clone();
             let app_handle = app.handle();
+
+            register_keybindings(app_handle.clone());
 
             main_window.on_window_event(move |event| {
                 if let WindowEvent::FileDrop(file_drop_event) = event {
@@ -66,4 +71,22 @@ fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[derive(serde::Serialize)]
+struct Symbol {
+    id: String,
+    attributes: HashMap<String, String>,
+}
+
+#[tauri::command]
+fn get_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>) -> Option<Symbol> {
+    state.current_sprite.read().unwrap().iter()
+        .find(|symbol| symbol.id == symbol_id)
+        .map(|symbol| Symbol {
+            id: symbol.id.clone(),
+            attributes: symbol.attributes.iter().map(|(key, value)| {
+                (key.to_string(), value.to_string())
+            }).collect(),
+        })
 }
