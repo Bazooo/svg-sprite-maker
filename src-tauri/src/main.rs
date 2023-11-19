@@ -13,7 +13,10 @@ use crate::keybindings::register_keybindings;
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_svg_symbol])
+        .invoke_handler(tauri::generate_handler![
+            get_svg_symbol,
+            delete_svg_symbol,
+        ])
         .manage(ApplicationState::default())
         .setup(|app| {
             let binding = app.windows();
@@ -89,4 +92,11 @@ fn get_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>) ->
                 (key.to_string(), value.to_string())
             }).collect(),
         })
+}
+
+#[tauri::command]
+fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
+    let current_sprite = state.current_sprite.read().unwrap().clone();
+    window.emit_to("main", events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
 }

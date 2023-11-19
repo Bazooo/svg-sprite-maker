@@ -19,7 +19,7 @@ impl SvgSymbol {
         let id = match attributes.get("id") {
             Some(id_attribute) => id_attribute.to_string(),
             None => {
-                let gen_id = generate_id();
+                let gen_id = format!("svg-sprite-{}", generate_id());
                 attributes.insert("id".to_string(), Value::from(gen_id.to_string()));
 
                 gen_id
