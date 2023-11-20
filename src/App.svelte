@@ -4,8 +4,8 @@
     import SideMenu from './components/sidemenu/SideMenu.svelte'
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
-    import {onMount} from "svelte";
-    import {activeSymbolId, sprite, symbolIds} from "./store";
+    import { onMount } from 'svelte'
+    import { activeSymbolId, sprite, symbolIds } from './store'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -19,16 +19,16 @@
     })
 </script>
 
-<div class="flex flex-col h-full bg-slate-50 text-neutral-800" role="main">
-    <div class="flex grow relative overflow-hidden">
+<div class="flex h-full flex-col bg-slate-50 text-neutral-800" role="main">
+    <div class="relative flex grow overflow-hidden">
         <FileHoverIndicator />
         <main class="grow overflow-y-auto">
             {#if !$sprite}
-                <div class="w-full h-full flex justify-center items-center">
+                <div class="flex h-full w-full items-center justify-center">
                     <span class="select-none">Drop svg file(s)</span>
                 </div>
             {:else if $symbolIds.length > 0}
-                <div class="symbols-grid grid gap-4 p-3 justify-center">
+                <div class="symbols-grid grid justify-center gap-4 p-3">
                     {#each $symbolIds as symbolId}
                         <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
                     {/each}

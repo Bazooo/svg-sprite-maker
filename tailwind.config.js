@@ -4,12 +4,8 @@ export default {
         extend: {},
     },
     plugins: [],
-    content: [
-        './index.html',
-        './src/**/*.{js,ts,svelte}',
-    ],
+    content: ['./index.html', './src/**/*.{js,ts,svelte}'],
     variants: {
         extend: {},
     },
 }
-

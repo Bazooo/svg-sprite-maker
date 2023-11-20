@@ -20,10 +20,10 @@
     }
 </script>
 
-<aside class="flex flex-col shrink-0 w-1/3 max-w-xs min-w-[240px] bg-slate-100 p-4">
+<aside class="flex w-1/3 min-w-[240px] max-w-xs shrink-0 flex-col bg-slate-100 p-4">
     {#if $activeSymbolId && activeSymbol}
         <div class="p-3">
-            <svg class="fill-current w-full">
+            <svg class="w-full fill-current">
                 <use href="#{$activeSymbolId}" />
             </svg>
         </div>
@@ -33,7 +33,7 @@
         </div>
         <button on:click={deleteSymbol($activeSymbolId)}>Delete</button>
     {:else}
-        <div class="flex justify-center items-center w-full h-full">
+        <div class="flex h-full w-full items-center justify-center">
             <span>Select a symbol</span>
         </div>
     {/if}

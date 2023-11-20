@@ -1,7 +1,7 @@
 <script lang="ts">
     import { mdiCreation } from '@mdi/js'
     import { listen } from '@tauri-apps/api/event'
-    import {onMount} from "svelte";
+    import { onMount } from 'svelte'
 
     let hovering = false
     let hovered = 0
@@ -28,8 +28,8 @@
 </script>
 
 {#if hovering && hovered}
-    <div class="w-full h-full flex justify-center items-center gap-x-2 absolute z-[9999] top-0 left-0 bg-slate-50/90 border-8 border-current border-dashed rounded-3xl select-none">
-        <svg class="fill-current h-10 w-10" viewBox="0 0 24 24">
+    <div class="absolute left-0 top-0 z-[9999] flex h-full w-full select-none items-center justify-center gap-x-2 rounded-3xl border-8 border-dashed border-current bg-slate-50/90">
+        <svg class="h-10 w-10 fill-current" viewBox="0 0 24 24">
             <path d={mdiCreation} />
         </svg>
         <span class="text-3xl font-bold">
