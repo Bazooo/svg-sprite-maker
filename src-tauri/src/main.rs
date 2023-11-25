@@ -3,19 +3,22 @@
 
 mod app;
 mod events;
-mod keybindings;
 
 use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
 use tauri::{FileDropEvent, Manager, WindowEvent};
 use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
 use crate::app::ApplicationState;
-use crate::keybindings::register_keybindings;
+use crate::events::get_sprite;
 
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_svg_symbol,
             delete_svg_symbol,
+            set_save_file_path,
+            save,
         ])
         .manage(ApplicationState::default())
         .setup(|app| {
@@ -23,8 +26,6 @@ fn main() {
             let main_window = binding.get("main").unwrap();
             let target_window = main_window.clone();
             let app_handle = app.handle();
-
-            register_keybindings(app_handle.clone());
 
             main_window.on_window_event(move |event| {
                 if let WindowEvent::FileDrop(file_drop_event) = event {
@@ -62,6 +63,15 @@ fn main() {
 
                             target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
                             target_window.emit_to("main", events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+
+                            if state.auto_save_enabled.read().unwrap().clone() {
+                                save(state, target_window.clone());
+                            } else {
+                                *state.unsaved_changes.write().unwrap() = true;
+                                let path = state.file_path.read().unwrap().clone();
+
+                                target_window.emit_to("main", events::UNSAVED_CHANGES, events::UnsavedChangesEvent::from(path)).unwrap();
+                            }
                         }
                         _ => {
                             target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
@@ -99,4 +109,29 @@ fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>,
     state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
     let current_sprite = state.current_sprite.read().unwrap().clone();
     window.emit_to("main", events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+}
+
+#[tauri::command]
+fn save(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    let Some(path) = state.file_path.read().unwrap().clone() else {
+        window.emit_to("main", events::SAVE_FILE_NOT_SET, ()).unwrap();
+        return;
+    };
+
+    if !state.unsaved_changes.read().unwrap().clone() {
+        return;
+    }
+
+    let current_sprite = state.current_sprite.read().unwrap().clone();
+    fs::write(path, get_sprite(current_sprite)).unwrap();
+
+    *state.unsaved_changes.write().unwrap() = false;
+}
+
+#[tauri::command]
+fn set_save_file_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    state.file_path.write().unwrap().replace(path);
+    *state.unsaved_changes.write().unwrap() = true;
+
+    save(state, window);
 }
