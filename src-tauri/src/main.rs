@@ -40,7 +40,7 @@ fn main() {
                                     }
                                 });
 
-                            target_window.emit_to("main", events::FILES_HOVERED, num_symbols).unwrap();
+                            target_window.emit(events::FILES_HOVERED, num_symbols).unwrap();
                         }
                         FileDropEvent::Dropped(dropped_files) => {
                             let mut symbols: Vec<_> = dropped_files.iter()
@@ -52,7 +52,7 @@ fn main() {
                                 .collect();
 
                             if symbols.is_empty() {
-                                target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
+                                target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
                                 return;
                             }
 
@@ -61,20 +61,21 @@ fn main() {
 
                             let current_sprite = state.current_sprite.read().unwrap().clone();
 
-                            target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
-                            target_window.emit_to("main", events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+                            target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
+                            target_window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
 
-                            if state.auto_save_enabled.read().unwrap().clone() {
-                                save(state, target_window.clone());
+                            if state.auto_save_enabled.read().unwrap().clone() && state.file_path.read().unwrap().is_some() {
+                                save(state.clone(), target_window.clone());
                             } else {
                                 *state.unsaved_changes.write().unwrap() = true;
                                 let path = state.file_path.read().unwrap().clone();
 
-                                target_window.emit_to("main", events::UNSAVED_CHANGES, events::UnsavedChangesEvent::from(path)).unwrap();
+                                target_window.emit(events::UNSAVED_CHANGES, events::UnsavedChangesEvent::from(path)).unwrap();
+                                state.update_window_title(target_window.clone());
                             }
                         }
                         _ => {
-                            target_window.emit_to("main", events::FILES_HOVER_STOPPED, ()).unwrap();
+                            target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
                         },
                     }
                 }
@@ -108,13 +109,13 @@ fn get_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>) ->
 fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
     let current_sprite = state.current_sprite.read().unwrap().clone();
-    window.emit_to("main", events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
 }
 
 #[tauri::command]
 fn save(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let Some(path) = state.file_path.read().unwrap().clone() else {
-        window.emit_to("main", events::SAVE_FILE_NOT_SET, ()).unwrap();
+        window.emit(events::SAVE_FILE_NOT_SET, ()).unwrap();
         return;
     };
 
@@ -126,6 +127,7 @@ fn save(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     fs::write(path, get_sprite(current_sprite)).unwrap();
 
     *state.unsaved_changes.write().unwrap() = false;
+    state.update_window_title(window);
 }
 
 #[tauri::command]
