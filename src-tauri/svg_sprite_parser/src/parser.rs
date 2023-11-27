@@ -37,7 +37,7 @@ pub(crate) fn parse_svg(svg: Parser) -> Result<SvgType, ()> {
             Event::Tag(path, tag_type, attributes) => Some(SvgTag {
                 path: path.to_string(),
                 tag_type: tag_type.clone(),
-                attributes: attributes.clone(),
+                attributes: attributes.iter().map(|(key, value)| (key.to_string(), value.to_string())).collect(),
             }),
             _ => None,
         }).collect();

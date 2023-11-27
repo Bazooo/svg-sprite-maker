@@ -1,12 +1,12 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use svg::node::element::tag::Type;
-use svg::node::Attributes;
 
 #[derive(Debug, Clone)]
 pub struct SvgTag {
     pub path: String,
     pub tag_type: Type,
-    pub attributes: Attributes,
+    pub attributes: HashMap<String, String>,
 }
 
 impl Display for SvgTag {
@@ -35,7 +35,7 @@ impl Display for SvgTag {
     }
 }
 
-pub fn string_attributes(attributes: &Attributes) -> String {
+pub fn string_attributes(attributes: &HashMap<String, String>) -> String {
     let mut string = vec![];
     for (key, value) in attributes {
         string.push(format!(" {}=\"{}\"", key, value));

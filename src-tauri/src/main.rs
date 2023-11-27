@@ -19,6 +19,9 @@ fn main() {
             delete_svg_symbol,
             set_save_file_path,
             save,
+            update_symbol_attribute,
+            remove_symbol_attribute,
+            set_auto_save,
         ])
         .manage(ApplicationState::default())
         .setup(|app| {
@@ -106,6 +109,30 @@ fn get_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>) ->
 }
 
 #[tauri::command]
+fn update_symbol_attribute(symbol_id: &str, key: &str, value: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    state.current_sprite.write().unwrap().iter_mut()
+        .find(|symbol| symbol.id == symbol_id)
+        .map(|symbol| {
+            symbol.attributes.insert(key.to_string(), value.to_string());
+        });
+
+    let current_sprite = state.current_sprite.read().unwrap().clone();
+    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+}
+
+#[tauri::command]
+fn remove_symbol_attribute(symbol_id: &str, key: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    state.current_sprite.write().unwrap().iter_mut()
+        .find(|symbol| symbol.id == symbol_id)
+        .map(|symbol| {
+            symbol.attributes.remove(key);
+        });
+
+    let current_sprite = state.current_sprite.read().unwrap().clone();
+    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+}
+
+#[tauri::command]
 fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
     let current_sprite = state.current_sprite.read().unwrap().clone();
@@ -136,4 +163,9 @@ fn set_save_file_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, 
     *state.unsaved_changes.write().unwrap() = true;
 
     save(state, window);
+}
+
+#[tauri::command]
+fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>) {
+    *state.auto_save_enabled.write().unwrap() = enabled;
 }

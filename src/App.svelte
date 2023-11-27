@@ -22,7 +22,7 @@
 
     const shortcutHandler = async (event: KeyboardEvent) => {
         if (!event.ctrlKey) {
-            return;
+            return
         }
 
         if (event.key === 's') {

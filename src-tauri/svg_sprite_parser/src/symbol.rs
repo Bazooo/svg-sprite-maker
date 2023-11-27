@@ -1,5 +1,5 @@
+use std::collections::HashMap;
 use std::fmt::Display;
-use svg::node::{Attributes, Value};
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 use crate::tag::{string_attributes, SvgTag};
@@ -8,19 +8,19 @@ use crate::tag::{string_attributes, SvgTag};
 pub struct SvgSymbol {
     pub id: String,
     pub contents: Vec<SvgTag>,
-    pub attributes: Attributes,
+    pub attributes: HashMap<String, String>,
     is_initialized: bool,
 }
 
 impl SvgSymbol {
-    pub fn init(&mut self, attributes: Attributes) {
-        let mut attributes = attributes;
+    pub fn init(&mut self, attributes: HashMap<String, String>) {
+        let mut attributes = attributes.clone();
 
         let id = match attributes.get("id") {
             Some(id_attribute) => id_attribute.to_string(),
             None => {
                 let gen_id = format!("svg-sprite-{}", generate_id());
-                attributes.insert("id".to_string(), Value::from(gen_id.to_string()));
+                attributes.insert("id".to_string(), gen_id.to_string());
 
                 gen_id
             },
