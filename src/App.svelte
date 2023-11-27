@@ -38,6 +38,7 @@
         const unlistenSpriteChanged = await listen<SpriteChangedEvent>('sprite-changed', (event) => {
             symbolIds.set(event.payload.ids)
             sprite.set(event.payload.sprite)
+            console.log($symbolIds)
         })
 
         const unlistenSaveFileNotSet = await listen('save-file-not-set', changeSaveFilePath)
@@ -59,7 +60,7 @@
                 </div>
             {:else if $symbolIds.length > 0}
                 <div class="symbols-grid grid justify-center gap-4 p-3">
-                    {#each $symbolIds as symbolId}
+                    {#each $symbolIds as symbolId(symbolId)}
                         <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
                     {/each}
                 </div>

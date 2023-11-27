@@ -113,6 +113,10 @@ fn update_symbol_attribute(symbol_id: &str, key: &str, value: &str, state: tauri
     state.current_sprite.write().unwrap().iter_mut()
         .find(|symbol| symbol.id == symbol_id)
         .map(|symbol| {
+            if key == "id" {
+                symbol.id = value.to_string();
+            }
+
             symbol.attributes.insert(key.to_string(), value.to_string());
         });
 
