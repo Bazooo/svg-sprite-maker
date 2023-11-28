@@ -1,7 +1,7 @@
 <script lang="ts">
     import { listen } from '@tauri-apps/api/event'
     import type { SpriteChangedEvent } from './types/spriteChangedEvent'
-    import SideMenu from './components/sidemenu/SideMenu.svelte'
+    import SideMenu from './components/SideMenu/SideMenu.svelte'
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
