@@ -1,10 +1,10 @@
 [package]
 name = "svg-sprite-maker"
 version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+description = "Svg Sprite Maker"
+authors = ["Mathieu Chan Yee Choy"]
+license = "Apache-2.0"
+repository = "https://github.com/Bazooo/svg-sprite-maker"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
