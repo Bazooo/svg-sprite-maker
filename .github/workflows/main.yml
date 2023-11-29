@@ -21,6 +21,14 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
+      - name: install cargo-edit
+        run: |
+          TAG=${{ github.ref_name }}
+          cargo install cargo-edit
+          cd src-tauri
+          cargo set-version ${TAG#v}
+          cd ..
+
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-latest'
         run: |
@@ -40,5 +48,4 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: ${{ github.ref_name }}
           releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: true
           prerelease: false
