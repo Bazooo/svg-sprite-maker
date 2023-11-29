@@ -10,7 +10,8 @@
         "check": "svelte-check --tsconfig ./tsconfig.json",
         "lint": "eslint --ext .js,.ts,.svelte ./src",
         "format": "prettier ./src/**/*.{svelte,ts,js} --write",
-        "tauri": "tauri"
+        "tauri": "tauri",
+        "update-cargo": "node ./build/updateCargoTomlVersion.mjs"
     },
     "dependencies": {
         "@mdi/js": "^7.3.67",
@@ -39,6 +40,7 @@
         "svelte-preprocess": "^5.1.0",
         "svelte-sequential-preprocessor": "^2.0.1",
         "tailwindcss": "^3.3.5",
+        "toml": "^3.0.0",
         "tslib": "^2.6.2",
         "typescript": "^5.2.2",
         "vite": "^4.5.0"
