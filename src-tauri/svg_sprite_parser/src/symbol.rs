@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
+use crate::parser::{get_svg_symbols, get_svg_tags, parse_svg, SvgType};
 use crate::tag::{string_attributes, SvgTag};
 
 #[derive(Default, Debug, Clone)]
@@ -57,6 +58,23 @@ impl Display for SvgSymbol {
 
         string.push("</symbol>".to_string());
         write!(f, "{}", string.join(""))
+    }
+}
+
+impl TryFrom<String> for SvgSymbol {
+    type Error = ();
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let svg = svg::read(&value).map_err(|_| ())?;
+
+        let tags = get_svg_tags(svg);
+        let symbols = get_svg_symbols(tags);
+
+        if symbols.len() != 1 {
+            return Err(());
+        }
+
+        Ok(symbols.first().unwrap().clone())
     }
 }
 

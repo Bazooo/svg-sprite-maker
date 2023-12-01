@@ -31,8 +31,29 @@ pub fn get_svg_type_from_file(file_path: &PathBuf) -> Result<SvgType, ()> {
 }
 
 pub(crate) fn parse_svg(svg: Parser) -> Result<SvgType, ()> {
+    let tags = get_svg_tags(svg);
+
+    let Some(root_svg_tag) = tags.iter().find(|t| t.path == "svg") else {
+        return Err(());
+    };
+
+    let symbols = get_svg_symbols(tags.clone());
+
+    if symbols.len() > 0 {
+        return Ok(SvgType::Sprite(symbols));
+    }
+
+    let mut current_symbol = SvgSymbol::default();
+    current_symbol.init(root_svg_tag.clone().attributes);
+    let svg_contents = tags.iter().filter(|t| t.path != "svg").cloned().collect();
+    current_symbol.set_tags(svg_contents);
+
+    Ok(SvgType::Basic(current_symbol))
+}
+
+pub(crate) fn get_svg_tags(svg: Parser) -> Vec<SvgTag> {
     let events: Vec<_> = svg.into_iter().collect();
-    let tags: Vec<_> = events.iter()
+    events.iter()
         .filter_map(|e| match e {
             Event::Tag(path, tag_type, attributes) => Some(SvgTag {
                 path: path.to_string(),
@@ -40,11 +61,11 @@ pub(crate) fn parse_svg(svg: Parser) -> Result<SvgType, ()> {
                 attributes: attributes.iter().map(|(key, value)| (key.to_string(), value.to_string())).collect(),
             }),
             _ => None,
-        }).collect();
+        })
+        .collect()
+}
 
-    let Some(root_svg_tag) = tags.iter().find(|t| t.path == "svg") else {
-        return Err(());
-    };
+pub(crate) fn get_svg_symbols(tags: Vec<SvgTag>) -> Vec<SvgSymbol> {
     let mut symbols = Vec::new();
     let mut current_symbol = SvgSymbol::default();
 
@@ -70,15 +91,7 @@ pub(crate) fn parse_svg(svg: Parser) -> Result<SvgType, ()> {
         }
     }
 
-    if symbols.len() > 0 {
-        return Ok(SvgType::Sprite(symbols));
-    }
-
-    current_symbol.init(root_svg_tag.clone().attributes);
-    let svg_contents = tags.iter().filter(|t| t.path != "svg").cloned().collect();
-    current_symbol.set_tags(svg_contents);
-
-    Ok(SvgType::Basic(current_symbol))
+    symbols
 }
 
 #[cfg(test)]

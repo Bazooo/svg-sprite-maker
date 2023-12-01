@@ -8,7 +8,11 @@ use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
 use tauri::{FileDropEvent, Manager, WindowEvent};
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
+use std::process::{Command, Stdio};
+use svg_sprite_parser::symbol::SvgSymbol;
+use xml::{EmitterConfig, ParserConfig};
 use crate::app::ApplicationState;
 use crate::events::get_sprite;
 
@@ -16,6 +20,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             get_svg_symbol,
+            edit_svg_symbol,
             delete_svg_symbol,
             set_save_file_path,
             save,
@@ -131,6 +136,62 @@ fn remove_symbol_attribute(symbol_id: &str, key: &str, state: tauri::State<'_, A
         .map(|symbol| {
             symbol.attributes.remove(key);
         });
+
+    let current_sprite = state.current_sprite.read().unwrap().clone();
+    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+}
+
+#[tauri::command(async)]
+fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    let Some(symbol) = state.current_sprite.read().unwrap().iter().find(|symbol| symbol.id == symbol_id).map(|symbol| symbol.to_string()) else {
+        return;
+    };
+
+    let mut dest = Vec::new();
+    let reader = ParserConfig::new()
+        .trim_whitespace(true)
+        .ignore_comments(false)
+        .create_reader(symbol.as_bytes());
+    let mut writer = EmitterConfig::new()
+        .perform_indent(true)
+        .normalize_empty_elements(false)
+        .autopad_comments(false)
+        .create_writer(&mut dest);
+    for event in reader {
+        if let Some(event) = event.unwrap().as_writer_event() {
+            writer.write(event).unwrap();
+        }
+    }
+
+    let symbol = String::from_utf8(dest).unwrap();
+
+    let mut temp_file = tempfile::Builder::new().suffix(".svg").tempfile().unwrap();
+
+    temp_file.write_all(symbol.as_bytes()).unwrap();
+
+    let temp_file_path = temp_file.into_temp_path();
+
+    // todo: get code editor somehow
+    let status = Command::new("")
+        .arg(&temp_file_path)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .output()
+        .unwrap()
+        .status;
+
+    let edited_symbol = fs::read_to_string(&temp_file_path).unwrap();
+
+    temp_file_path.close().unwrap();
+
+    let Ok(new_symbol) = SvgSymbol::try_from(edited_symbol) else {
+        return;
+    };
+
+    state.current_sprite.write().unwrap().iter_mut()
+        .find(|symbol| symbol.id == symbol_id)
+        .map(|symbol| *symbol = new_symbol);
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
     window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();

@@ -2,7 +2,7 @@
     import { invoke } from '@tauri-apps/api'
     import { activeSymbol, activeSymbolAttributes, activeSymbolId } from '../../store'
     import SymbolAttributeInput from './SymbolAttributeInput.svelte'
-    import { mdiDelete, mdiGrid, mdiSquareOpacity } from '@mdi/js'
+    import {mdiDelete, mdiGrid, mdiSquareOpacity, mdiXml} from '@mdi/js'
     import SymbolPreviewGrid from './SymbolPreviewGrid.svelte'
     import SymbolPreviewTransparentGrid from './SymbolPreviewTransparentGrid.svelte'
 
@@ -21,6 +21,10 @@
         activeSymbolId.set(target.value)
     }
 
+    const editSymbol = (symbolId: string) => async () => {
+        await invoke('edit_svg_symbol', { symbolId })
+    }
+
     const deleteSymbol = (symbolId: string) => async () => {
         await invoke('delete_svg_symbol', { symbolId })
         activeSymbolId.set(undefined)
@@ -31,7 +35,7 @@
     {#if $activeSymbol}
         <div class="flex gap-2">
             <div class="relative aspect-square w-full">
-                <svg class="h-full w-full fill-current">
+                <svg class="h-full w-full fill-current absolute z-10">
                     <use href="#{$activeSymbolId}" />
                 </svg>
                 {#if showGrid}
@@ -55,6 +59,11 @@
                     <input class="hidden" type="checkbox" bind:checked={showTransparentGrid} />
                 </label>
                 <span class="grow" />
+                <button class="cursor-pointer rounded border border-transparent p-1 text-blue-500 hover:border-blue-500" on:click={editSymbol($activeSymbolId)} title="Edit symbol">
+                    <svg class="h-6 w-6">
+                        <path d={mdiXml} />
+                    </svg>
+                </button>
                 <button class="cursor-pointer rounded border border-transparent p-1 text-red-500 hover:border-red-500" on:click={deleteSymbol($activeSymbolId)} title="Remove symbol">
                     <svg class="h-6 w-6 fill-current">
                         <path d={mdiDelete} />
