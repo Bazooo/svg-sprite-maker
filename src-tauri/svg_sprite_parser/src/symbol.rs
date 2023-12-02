@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
-use crate::parser::{get_svg_symbols, get_svg_tags, parse_svg, SvgType};
+use crate::parser::{get_svg_symbols, get_svg_tags};
 use crate::tag::{string_attributes, SvgTag};
 
 #[derive(Default, Debug, Clone)]

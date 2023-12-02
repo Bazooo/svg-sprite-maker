@@ -5,8 +5,10 @@
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
-    import { activeSymbolId, sprite, symbolIds } from './store'
+    import { activeSymbolId, applicationSettings, sprite, symbolIds } from './store'
     import { dialog, invoke } from '@tauri-apps/api'
+    import type { ApplicationSettings } from './types/applicationSettings'
+    import Footer from './components/Footer/Footer.svelte'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -35,17 +37,24 @@
     }
 
     onMount(async () => {
+        const currentApplicationSettings = await invoke<ApplicationSettings>('get_app_settings')
+        applicationSettings.set(currentApplicationSettings)
+
         const unlistenSpriteChanged = await listen<SpriteChangedEvent>('sprite-changed', (event) => {
             symbolIds.set(event.payload.ids)
             sprite.set(event.payload.sprite)
-            console.log($symbolIds)
         })
 
         const unlistenSaveFileNotSet = await listen('save-file-not-set', changeSaveFilePath)
 
+        const unlistenSettingsChanged = await listen<ApplicationSettings>('settings-changed', (event) => {
+            applicationSettings.set(event.payload)
+        })
+
         return () => {
             unlistenSpriteChanged()
             unlistenSaveFileNotSet()
+            unlistenSettingsChanged()
         }
     })
 </script>
@@ -60,7 +69,7 @@
                 </div>
             {:else if $symbolIds.length > 0}
                 <div class="symbols-grid grid justify-center gap-4 p-3">
-                    {#each $symbolIds as symbolId(symbolId)}
+                    {#each $symbolIds as symbolId (symbolId)}
                         <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
                     {/each}
                 </div>
@@ -71,9 +80,7 @@
             <SideMenu />
         {/if}
     </div>
-    <footer class="flex bg-slate-200">
-        <kbd>Ctrl + S</kbd>
-    </footer>
+    <Footer />
 </div>
 
 <div class="hidden">

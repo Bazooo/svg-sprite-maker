@@ -2,10 +2,13 @@ import { derived, type Readable, writable } from 'svelte/store'
 import { invoke } from '@tauri-apps/api'
 import type { SvgSymbol } from './types/symbol'
 import type { SymbolAttribute } from './types/symbolAttribute'
+import type { ApplicationSettings } from './types/applicationSettings'
 
 export const sprite = writable<string | undefined>()
 export const symbolIds = writable<string[]>([])
 export const activeSymbolId = writable<string | undefined>()
+export const applicationSettings = writable<ApplicationSettings | undefined>()
+export const settingsWindowOpen = writable<boolean>(false)
 
 export const activeSymbol: Readable<SvgSymbol | undefined> = derived([activeSymbolId, sprite], ([$activeSymbolId], set) => {
     if ($activeSymbolId) {

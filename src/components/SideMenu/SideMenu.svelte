@@ -2,7 +2,7 @@
     import { invoke } from '@tauri-apps/api'
     import { activeSymbol, activeSymbolAttributes, activeSymbolId } from '../../store'
     import SymbolAttributeInput from './SymbolAttributeInput.svelte'
-    import {mdiDelete, mdiGrid, mdiSquareOpacity, mdiXml} from '@mdi/js'
+    import { mdiDelete, mdiGrid, mdiSquareOpacity, mdiXml } from '@mdi/js'
     import SymbolPreviewGrid from './SymbolPreviewGrid.svelte'
     import SymbolPreviewTransparentGrid from './SymbolPreviewTransparentGrid.svelte'
 
@@ -35,7 +35,7 @@
     {#if $activeSymbol}
         <div class="flex gap-2">
             <div class="relative aspect-square w-full">
-                <svg class="h-full w-full fill-current absolute z-10">
+                <svg class="absolute z-10 h-full w-full fill-current">
                     <use href="#{$activeSymbolId}" />
                 </svg>
                 {#if showGrid}

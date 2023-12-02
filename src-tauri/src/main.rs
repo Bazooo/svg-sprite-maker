@@ -3,6 +3,7 @@
 
 mod app;
 mod events;
+mod config;
 
 use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
 use tauri::{FileDropEvent, Manager, WindowEvent};
@@ -14,7 +15,17 @@ use std::process::{Command, Stdio};
 use svg_sprite_parser::symbol::SvgSymbol;
 use xml::{EmitterConfig, ParserConfig};
 use crate::app::ApplicationState;
+use crate::config::{ApplicationConfig, ApplicationConfigSettings};
 use crate::events::get_sprite;
+
+// todo: dark mode
+// todo: auto save
+// todo: error handling
+// todo: reset / new file
+// todo: multi selection delete
+// todo: filtering symbols by id / invalid / duplicate / colored
+// todo: sorting
+// todo: settings
 
 fn main() {
     tauri::Builder::default()
@@ -27,6 +38,8 @@ fn main() {
             update_symbol_attribute,
             remove_symbol_attribute,
             set_auto_save,
+            get_app_settings,
+            set_editor_path,
         ])
         .manage(ApplicationState::default())
         .setup(|app| {
@@ -34,6 +47,10 @@ fn main() {
             let main_window = binding.get("main").unwrap();
             let target_window = main_window.clone();
             let app_handle = app.handle();
+
+            // Load config
+            let state = app.state::<ApplicationState>();
+            *state.config.write().unwrap() = ApplicationConfig::load(app_handle.path_resolver().app_config_dir().unwrap().join("config.json"));
 
             main_window.on_window_event(move |event| {
                 if let WindowEvent::FileDrop(file_drop_event) = event {
@@ -72,7 +89,7 @@ fn main() {
                             target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
                             target_window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
 
-                            if state.auto_save_enabled.read().unwrap().clone() && state.file_path.read().unwrap().is_some() {
+                            if state.config.read().unwrap().settings.auto_save_enabled.clone() && state.file_path.read().unwrap().is_some() {
                                 save(state.clone(), target_window.clone());
                             } else {
                                 *state.unsaved_changes.write().unwrap() = true;
@@ -171,8 +188,12 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
 
     let temp_file_path = temp_file.into_temp_path();
 
-    // todo: get code editor somehow
-    let status = Command::new("")
+    let Some(editor_path) = state.config.read().unwrap().settings.editor_path.clone() else {
+        window.emit(events::EDITOR_NOT_SET, ()).unwrap();
+        return;
+    };
+
+    Command::new(editor_path)
         .arg(&temp_file_path)
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
@@ -232,5 +253,25 @@ fn set_save_file_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, 
 
 #[tauri::command]
 fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>) {
-    *state.auto_save_enabled.write().unwrap() = enabled;
+    let mut app_config = state.config.write().unwrap();
+
+    app_config.update_settings(|builder| {
+        builder.auto_save_enabled(enabled)
+    });
+}
+
+#[tauri::command]
+fn get_app_settings(state: tauri::State<'_, ApplicationState>) -> ApplicationConfigSettings {
+    state.config.read().unwrap().settings.clone()
+}
+
+#[tauri::command]
+fn set_editor_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    let mut app_config = state.config.write().unwrap();
+
+    app_config.update_settings(|builder| {
+        builder.editor_path(Some(path))
+    });
+
+    window.emit(events::SETTINGS_CHANGED, get_app_settings(state.clone())).unwrap();
 }
