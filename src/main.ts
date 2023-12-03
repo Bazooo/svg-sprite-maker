@@ -1,7 +1,7 @@
 import 'sanitize.css'
 import './global.css'
 import App from './App.svelte'
-import {applicationSettings} from "./store";
+import { applicationSettings } from './store'
 
 const app = new App({
     target: document.getElementById('app'),

@@ -66,7 +66,7 @@
     })
 </script>
 
-<div class="flex h-full flex-col bg-slate-50 dark:bg-slate-950 text-neutral-800 dark:text-neutral-200" role="main">
+<div class="flex h-full flex-col bg-slate-50 text-neutral-800 dark:bg-slate-950 dark:text-neutral-200" role="main">
     <div class="relative flex grow overflow-hidden">
         <FileHoverIndicator />
 

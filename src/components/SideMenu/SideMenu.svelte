@@ -31,7 +31,7 @@
     }
 </script>
 
-<aside class="flex w-2/5 min-w-[240px] max-w-[360px] shrink-0 flex-col gap-3 border-l border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 p-4">
+<aside class="flex w-2/5 min-w-[240px] max-w-[360px] shrink-0 flex-col gap-3 border-l border-slate-300 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-900">
     {#if $activeSymbol}
         <div class="flex gap-2">
             <div class="relative aspect-square w-full">
@@ -46,25 +46,25 @@
                 {/if}
             </div>
             <div class="flex flex-col gap-2">
-                <label class="cursor-pointer rounded border p-1 hover:bg-slate-200" class:border-transparent={!showGrid} class:border-slate-300={showGrid} title="Show grid">
+                <label class="toggle-button" class:border-transparent={!showGrid} class:border-slate-300={showGrid} title="Show grid">
                     <svg class="h-6 w-6">
                         <path d={mdiGrid} />
                     </svg>
                     <input class="hidden" type="checkbox" bind:checked={showGrid} />
                 </label>
-                <label class="cursor-pointer rounded border p-1 hover:bg-slate-200" class:border-transparent={!showTransparentGrid} class:border-slate-300={showTransparentGrid} title="Show transparent grid">
+                <label class="toggle-button" class:border-transparent={!showTransparentGrid} class:border-slate-300={showTransparentGrid} title="Show transparent grid">
                     <svg class="h-6 w-6">
                         <path d={mdiSquareOpacity} />
                     </svg>
                     <input class="hidden" type="checkbox" bind:checked={showTransparentGrid} />
                 </label>
                 <span class="grow" />
-                <button class="cursor-pointer rounded border border-transparent p-1 text-blue-500 hover:border-blue-500" on:click={editSymbol($activeSymbolId)} title="Edit symbol">
+                <button class="cursor-pointer rounded border border-transparent p-1 text-blue-500 hover:border-blue-500 active:bg-blue-100 active:dark:bg-blue-900" on:click={editSymbol($activeSymbolId)} title="Edit symbol">
                     <svg class="h-6 w-6">
                         <path d={mdiXml} />
                     </svg>
                 </button>
-                <button class="cursor-pointer rounded border border-transparent p-1 text-red-500 hover:border-red-500" on:click={deleteSymbol($activeSymbolId)} title="Remove symbol">
+                <button class="cursor-pointer rounded border border-transparent p-1 text-red-500 hover:border-red-500 active:bg-red-100 active:dark:bg-red-900" on:click={deleteSymbol($activeSymbolId)} title="Remove symbol">
                     <svg class="h-6 w-6 fill-current">
                         <path d={mdiDelete} />
                     </svg>
@@ -72,7 +72,7 @@
             </div>
         </div>
         <div class="flex grow flex-col gap-2">
-            <input type="text" class="w-full rounded bg-slate-200 px-2 py-1 outline-0 hover:bg-slate-300 focus:bg-slate-300" value={$activeSymbol.id} on:change={updateSymbolId} />
+            <input type="text" class="w-full rounded bg-slate-200 px-2 py-1 outline-0 focus-within:bg-slate-300 hover:bg-slate-300 dark:bg-slate-800 focus-within:dark:bg-slate-700 hover:dark:bg-slate-700" value={$activeSymbol.id} on:change={updateSymbolId} />
             <span class="text-lg font-bold">Attributes</span>
             <div class="flex grow flex-col gap-1 overflow-y-auto">
                 {#if $activeSymbolAttributes.length > 0}
@@ -90,3 +90,9 @@
         </div>
     {/if}
 </aside>
+
+<style>
+    .toggle-button {
+        @apply cursor-pointer rounded border p-1 hover:bg-slate-200 hover:dark:bg-slate-800;
+    }
+</style>
