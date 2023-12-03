@@ -38,6 +38,7 @@ fn main() {
             update_symbol_attribute,
             remove_symbol_attribute,
             set_auto_save,
+            set_dark_mode,
             get_app_settings,
             set_editor_path,
         ])
@@ -252,12 +253,25 @@ fn set_save_file_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, 
 }
 
 #[tauri::command]
-fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>) {
+fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let mut app_config = state.config.write().unwrap();
 
     app_config.update_settings(|builder| {
         builder.auto_save_enabled(enabled)
     });
+
+    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+}
+
+#[tauri::command]
+fn set_dark_mode(enabled: bool, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    let mut app_config = state.config.write().unwrap();
+
+    app_config.update_settings(|builder| {
+        builder.dark_mode(enabled)
+    });
+
+    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
 }
 
 #[tauri::command]
@@ -273,5 +287,5 @@ fn set_editor_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, win
         builder.editor_path(Some(path))
     });
 
-    window.emit(events::SETTINGS_CHANGED, get_app_settings(state.clone())).unwrap();
+    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
 }

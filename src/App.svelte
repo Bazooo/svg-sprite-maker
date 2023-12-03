@@ -5,10 +5,11 @@
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
-    import { activeSymbolId, applicationSettings, sprite, symbolIds } from './store'
+    import { activeSymbolId, applicationSettings, settingsWindowOpen, sprite, symbolIds } from './store'
     import { dialog, invoke } from '@tauri-apps/api'
     import type { ApplicationSettings } from './types/applicationSettings'
     import Footer from './components/Footer/Footer.svelte'
+    import Settings from './components/Settings/Settings.svelte'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -38,6 +39,7 @@
 
     onMount(async () => {
         const currentApplicationSettings = await invoke<ApplicationSettings>('get_app_settings')
+        console.log(currentApplicationSettings)
         applicationSettings.set(currentApplicationSettings)
 
         const unlistenSpriteChanged = await listen<SpriteChangedEvent>('sprite-changed', (event) => {
@@ -47,6 +49,10 @@
 
         const unlistenSaveFileNotSet = await listen('save-file-not-set', changeSaveFilePath)
 
+        const unlistenEditorNotSet = await listen('editor-not-set', () => {
+            settingsWindowOpen.set(true)
+        })
+
         const unlistenSettingsChanged = await listen<ApplicationSettings>('settings-changed', (event) => {
             applicationSettings.set(event.payload)
         })
@@ -54,27 +60,35 @@
         return () => {
             unlistenSpriteChanged()
             unlistenSaveFileNotSet()
+            unlistenEditorNotSet()
             unlistenSettingsChanged()
         }
     })
 </script>
 
-<div class="flex h-full flex-col bg-slate-50 text-neutral-800" role="main">
+<div class="flex h-full flex-col bg-slate-50 dark:bg-slate-950 text-neutral-800 dark:text-neutral-200" role="main">
     <div class="relative flex grow overflow-hidden">
         <FileHoverIndicator />
-        <main class="grow overflow-y-auto">
-            {#if !$sprite}
-                <div class="flex h-full w-full items-center justify-center">
-                    <span class="select-none">Drop svg file(s)</span>
-                </div>
-            {:else if $symbolIds.length > 0}
-                <div class="symbols-grid grid justify-center gap-4 p-3">
-                    {#each $symbolIds as symbolId (symbolId)}
-                        <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
-                    {/each}
-                </div>
+
+        <div class="flex grow flex-col">
+            <main class="grow overflow-y-auto">
+                {#if !$sprite}
+                    <div class="flex h-full w-full items-center justify-center">
+                        <span class="select-none">Drop svg file(s)</span>
+                    </div>
+                {:else if $symbolIds.length > 0}
+                    <div class="symbols-grid grid justify-center gap-4 p-3">
+                        {#each $symbolIds as symbolId (symbolId)}
+                            <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
+                        {/each}
+                    </div>
+                {/if}
+            </main>
+
+            {#if $settingsWindowOpen}
+                <Settings />
             {/if}
-        </main>
+        </div>
 
         {#if $sprite}
             <SideMenu />
@@ -92,17 +106,6 @@
 <svelte:window on:keydown={shortcutHandler} />
 
 <style>
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-
-    :global(body),
-    :global(html),
-    :global(#app) {
-        width: 100%;
-        height: 100%;
-    }
-
     .symbols-grid {
         grid-template-columns: repeat(auto-fill, 4.25rem);
         grid-auto-rows: 4.25rem;

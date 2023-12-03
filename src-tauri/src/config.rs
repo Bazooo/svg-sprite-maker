@@ -1,10 +1,10 @@
 use std::{fs, io, path};
 use derive_builder::Builder;
 
-#[derive(serde::Deserialize, serde::Serialize, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
 pub struct TransparencyGridColor(String, f32);
 
-#[derive(serde::Deserialize, serde::Serialize, Default)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplicationConfig {
     #[serde(skip)]
@@ -12,7 +12,8 @@ pub struct ApplicationConfig {
     pub settings: ApplicationConfigSettings,
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Builder, Default, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Builder, Default, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ApplicationConfigSettings {
     // Generic
     pub auto_save_enabled: bool,
@@ -43,7 +44,10 @@ impl ApplicationConfig {
             return Self::default_with_path(config_path);
         };
 
-        config
+        Self {
+            path: config_path,
+            ..config
+        }
     }
 
     pub fn update_settings<F>(&mut self, f: F)
@@ -68,14 +72,14 @@ impl ApplicationConfig {
     }
 
     fn save(&self) {
-        fs::create_dir_all(self.path.clone()).unwrap();
+        fs::create_dir_all(self.path.clone().parent().unwrap()).unwrap();
 
         let mut options = fs::OpenOptions::new();
-        options.write(true).create(true).truncate(true).write(true);
+        options.write(true).truncate(true).create(true);
 
         let mut file = options.open(self.path.clone()).unwrap();
 
-        serde_json::to_writer(&mut file, self).unwrap();
+        serde_json::to_writer_pretty(&mut file, self).unwrap();
     }
 }
 

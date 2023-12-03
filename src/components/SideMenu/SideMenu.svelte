@@ -31,7 +31,7 @@
     }
 </script>
 
-<aside class="flex w-2/5 min-w-[240px] max-w-[360px] shrink-0 flex-col gap-3 bg-slate-100 p-4">
+<aside class="flex w-2/5 min-w-[240px] max-w-[360px] shrink-0 flex-col gap-3 border-l border-slate-300 bg-slate-100 dark:border-slate-700 dark:bg-slate-900 p-4">
     {#if $activeSymbol}
         <div class="flex gap-2">
             <div class="relative aspect-square w-full">

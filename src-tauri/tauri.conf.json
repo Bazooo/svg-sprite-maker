@@ -8,14 +8,14 @@
         "withGlobalTauri": false
     },
     "package": {
-        "productName": "SVG Sprite Maker",
-        "version": "0.0.0"
+        "productName": "SVG Sprite Maker"
     },
     "tauri": {
         "allowlist": {
             "all": false,
             "dialog": {
-                "save": true
+                "save": true,
+                "open": true
             }
         },
         "bundle": {
