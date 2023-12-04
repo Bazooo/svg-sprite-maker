@@ -1,8 +1,7 @@
 <script lang="ts">
     import { mdiApplicationEditOutline, mdiClose, mdiCreation } from '@mdi/js'
-    import { activeSymbolId, applicationSettings, settingsWindowOpen } from '../../store'
+    import { applicationSettings, settingsWindowOpen } from '../../store'
     import { dialog, invoke } from '@tauri-apps/api'
-    import OpacitySlider from './OpacitySlider.svelte'
     import TransparentGrid from '../TransparentGrid.svelte'
 
     const setEditorPath = async () => {
@@ -37,6 +36,22 @@
             : {
                   g1: $applicationSettings?.transparencyGridColor1,
                   g2: [target.value, $applicationSettings?.transparencyGridColor2?.[1] ?? 0.1],
+              }
+
+        await invoke('set_transparency_grid_colors', payload)
+    }
+
+    const setOpacityGridColor = (isFirst: boolean) => async (event: InputEvent) => {
+        const target = event.currentTarget as HTMLInputElement
+
+        const payload = isFirst
+            ? {
+                  g1: [$applicationSettings?.transparencyGridColor1?.[0] ?? 'black', target.valueAsNumber],
+                  g2: $applicationSettings?.transparencyGridColor2,
+              }
+            : {
+                  g1: $applicationSettings?.transparencyGridColor1,
+                  g2: [$applicationSettings?.transparencyGridColor2?.[0] ?? 'transparent', target.valueAsNumber],
               }
 
         await invoke('set_transparency_grid_colors', payload)
@@ -84,23 +99,30 @@
         <div class="settings-section">
             <span>Transparency Grid</span>
             <div class="flex gap-2">
-                <div class="flex flex-col">
+                <div class="flex flex-col gap-2">
                     <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
                         <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Color 1</span>
                         <input type="text" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor1?.[0] ?? 'black'} on:change={setTransparencyGridColor(true)} />
                     </label>
-                    <OpacitySlider />
+                    <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
+                        <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Opacity 1</span>
+                        <input type="number" min="0" max="1" step="0.1" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor1?.[1].toPrecision(1) ?? 1} on:change={setOpacityGridColor(true)} />
+                    </label>
                 </div>
-                <div class="relative aspect-square h-full overflow-hidden rounded border border-slate-400">
+                <div class="relative aspect-square h-full shrink-0 overflow-hidden rounded border border-slate-400">
                     <TransparentGrid />
                     <svg class="absolute z-10 h-full w-full fill-current" viewBox="0 0 24 24">
                         <path d={mdiCreation} />
                     </svg>
                 </div>
-                <div class="flex flex-col">
+                <div class="flex flex-col gap-2">
                     <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
                         <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Color 2</span>
                         <input type="text" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor2?.[0] ?? 'transparent'} on:change={setTransparencyGridColor(false)} />
+                    </label>
+                    <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
+                        <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Opacity 1</span>
+                        <input type="number" min="0" max="1" step="0.1" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor2?.[1].toPrecision(1) ?? 0} on:change={setOpacityGridColor(false)} />
                     </label>
                 </div>
             </div>
