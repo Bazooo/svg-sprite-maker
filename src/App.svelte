@@ -39,7 +39,6 @@
 
     onMount(async () => {
         const currentApplicationSettings = await invoke<ApplicationSettings>('get_app_settings')
-        console.log(currentApplicationSettings)
         applicationSettings.set(currentApplicationSettings)
 
         const unlistenSpriteChanged = await listen<SpriteChangedEvent>('sprite-changed', (event) => {

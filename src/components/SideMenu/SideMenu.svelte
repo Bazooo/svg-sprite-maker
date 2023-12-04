@@ -4,7 +4,7 @@
     import SymbolAttributeInput from './SymbolAttributeInput.svelte'
     import { mdiDelete, mdiGrid, mdiSquareOpacity, mdiXml } from '@mdi/js'
     import SymbolPreviewGrid from './SymbolPreviewGrid.svelte'
-    import SymbolPreviewTransparentGrid from './SymbolPreviewTransparentGrid.svelte'
+    import TransparentGrid from '../TransparentGrid.svelte'
 
     let showGrid = true
     let showTransparentGrid = true
@@ -42,7 +42,7 @@
                     <SymbolPreviewGrid />
                 {/if}
                 {#if showTransparentGrid}
-                    <SymbolPreviewTransparentGrid />
+                    <TransparentGrid />
                 {/if}
             </div>
             <div class="flex flex-col gap-2">

@@ -8,7 +8,6 @@ const app = new App({
 })
 
 applicationSettings.subscribe((settings) => {
-    document.documentElement.classList.toggle('dark', settings.darkMode)
+    document.documentElement.classList.toggle('dark', settings?.darkMode)
 })
-
 export default app

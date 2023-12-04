@@ -15,10 +15,9 @@ use std::process::{Command, Stdio};
 use svg_sprite_parser::symbol::SvgSymbol;
 use xml::{EmitterConfig, ParserConfig};
 use crate::app::ApplicationState;
-use crate::config::{ApplicationConfig, ApplicationConfigSettings};
+use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGridColor};
 use crate::events::get_sprite;
 
-// todo: dark mode
 // todo: auto save
 // todo: error handling
 // todo: reset / new file
@@ -41,6 +40,7 @@ fn main() {
             set_dark_mode,
             get_app_settings,
             set_editor_path,
+            set_transparency_grid_colors,
         ])
         .manage(ApplicationState::default())
         .setup(|app| {
@@ -285,6 +285,18 @@ fn set_editor_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, win
 
     app_config.update_settings(|builder| {
         builder.editor_path(Some(path))
+    });
+
+    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+}
+
+#[tauri::command]
+fn set_transparency_grid_colors(g1: Option<TransparencyGridColor>, g2: Option<TransparencyGridColor>, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    let mut app_config = state.config.write().unwrap();
+
+    app_config.update_settings(|builder| {
+        builder.transparency_grid_color_1(g1)
+            .transparency_grid_color_2(g2)
     });
 
     window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
