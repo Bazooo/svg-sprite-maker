@@ -21,8 +21,10 @@ use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGr
 // todo: reset / new file
 // todo: multi selection delete
 // todo: filtering symbols by id / invalid / duplicate / colored
+// todo: auto-cleanup symbols
 // todo: sorting
-// todo: settings
+// todo: undo / redo
+// todo: add keybinds viewer
 
 fn main() {
     tauri::Builder::default()

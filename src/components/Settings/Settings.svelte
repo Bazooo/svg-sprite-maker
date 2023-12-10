@@ -100,11 +100,11 @@
             <span>Transparency Grid</span>
             <div class="flex gap-2">
                 <div class="flex flex-col gap-2">
-                    <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
+                    <label>
                         <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Color 1</span>
                         <input type="text" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor1?.[0] ?? 'black'} on:change={setTransparencyGridColor(true)} />
                     </label>
-                    <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
+                    <label>
                         <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Opacity 1</span>
                         <input type="number" min="0" max="1" step="0.1" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor1?.[1].toPrecision(1) ?? 1} on:change={setOpacityGridColor(true)} />
                     </label>
@@ -116,11 +116,11 @@
                     </svg>
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
+                    <label>
                         <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Color 2</span>
                         <input type="text" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor2?.[0] ?? 'transparent'} on:change={setTransparencyGridColor(false)} />
                     </label>
-                    <label class="flex items-center gap-1 rounded border border-slate-400 p-1">
+                    <label>
                         <span class="whitespace-nowrap rounded bg-slate-400 px-2 py-1 text-xs text-white">Opacity 1</span>
                         <input type="number" min="0" max="1" step="0.1" class="w-full grow rounded bg-transparent outline-0" value={$applicationSettings.transparencyGridColor2?.[1].toPrecision(1) ?? 0} on:change={setOpacityGridColor(false)} />
                     </label>
@@ -133,6 +133,10 @@
 <style>
     .settings-section {
         @apply flex flex-col gap-2 rounded p-2 hover:bg-slate-300 hover:dark:bg-slate-700;
+
+        & label {
+            @apply flex items-center gap-1 rounded  border border-slate-400 p-1 hover:border-slate-500;
+        }
     }
 
     .settings-section > span {

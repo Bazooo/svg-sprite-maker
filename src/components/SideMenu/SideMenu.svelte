@@ -19,7 +19,7 @@
     }
 </script>
 
-<aside class="flex w-2/5 min-w-[240px] max-w-[360px] shrink-0 flex-col gap-3 border-l border-slate-300 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-900">
+<aside class="flex w-2/5 min-w-[240px] max-w-[360px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-300 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-900">
     {#if $activeSymbol}
         <div class="flex gap-2">
             <div class="relative aspect-square w-full">
@@ -33,7 +33,7 @@
                     <TransparentGrid />
                 {/if}
             </div>
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-3">
                 <label class="toggle-button" class:border-transparent={!showGrid} class:border-slate-300={showGrid} title="Show grid">
                     <svg class="h-6 w-6">
                         <path d={mdiGrid} />
