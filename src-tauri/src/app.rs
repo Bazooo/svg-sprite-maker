@@ -1,7 +1,10 @@
+use std::fs;
 use std::path::PathBuf;
 use std::sync::RwLock;
 use svg_sprite_parser::symbol::SvgSymbol;
 use crate::config::ApplicationConfig;
+use crate::events;
+use crate::events::get_sprite;
 
 #[derive(Default)]
 pub struct ApplicationState {
@@ -28,5 +31,35 @@ impl ApplicationState {
         } else {
             window.set_title(&window_title).unwrap();
         }
+    }
+
+    pub fn auto_save(&self, window: tauri::Window) {
+        *self.unsaved_changes.write().unwrap() = true;
+
+        if self.config.read().unwrap().settings.auto_save_enabled.clone() && self.file_path.read().unwrap().is_some() {
+            self.force_save(window);
+        } else {
+            let path = self.file_path.read().unwrap().clone();
+
+            window.emit(events::UNSAVED_CHANGES, events::UnsavedChangesEvent::from(path)).unwrap();
+            self.update_window_title(window);
+        }
+    }
+
+    pub fn force_save(&self, window: tauri::Window) {
+        let Some(file_path) = self.file_path.read().unwrap().clone() else {
+            window.emit(events::SAVE_FILE_NOT_SET, ()).unwrap();
+            return;
+        };
+
+        if !self.unsaved_changes.read().unwrap().clone() {
+            return;
+        }
+
+        let current_sprite = self.current_sprite.read().unwrap().clone();
+        fs::write(file_path, get_sprite(current_sprite)).unwrap();
+
+        *self.unsaved_changes.write().unwrap() = false;
+        self.update_window_title(window);
     }
 }

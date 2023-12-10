@@ -16,9 +16,7 @@ use svg_sprite_parser::symbol::SvgSymbol;
 use xml::{EmitterConfig, ParserConfig};
 use crate::app::ApplicationState;
 use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGridColor};
-use crate::events::get_sprite;
 
-// todo: auto save
 // todo: error handling
 // todo: reset / new file
 // todo: multi selection delete
@@ -90,15 +88,7 @@ fn main() {
                             target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
                             target_window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
 
-                            if state.config.read().unwrap().settings.auto_save_enabled.clone() && state.file_path.read().unwrap().is_some() {
-                                save(state.clone(), target_window.clone());
-                            } else {
-                                *state.unsaved_changes.write().unwrap() = true;
-                                let path = state.file_path.read().unwrap().clone();
-
-                                target_window.emit(events::UNSAVED_CHANGES, events::UnsavedChangesEvent::from(path)).unwrap();
-                                state.update_window_title(target_window.clone());
-                            }
+                            state.auto_save(target_window.clone());
                         }
                         _ => {
                             target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
@@ -145,6 +135,8 @@ fn update_symbol_attribute(symbol_id: &str, key: &str, value: &str, state: tauri
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
     window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+
+    state.auto_save(window);
 }
 
 #[tauri::command]
@@ -157,6 +149,8 @@ fn remove_symbol_attribute(symbol_id: &str, key: &str, state: tauri::State<'_, A
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
     window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+
+    state.auto_save(window);
 }
 
 #[tauri::command(async)]
@@ -194,6 +188,7 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
         return;
     };
 
+    // todo: check how to block the command if editor was already opened (VSCode)
     Command::new(editor_path)
         .arg(&temp_file_path)
         .stdin(Stdio::inherit())
@@ -217,6 +212,8 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
     window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+
+    state.auto_save(window);
 }
 
 #[tauri::command]
@@ -224,24 +221,13 @@ fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>,
     state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
     let current_sprite = state.current_sprite.read().unwrap().clone();
     window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+
+    state.auto_save(window);
 }
 
 #[tauri::command]
 fn save(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
-    let Some(path) = state.file_path.read().unwrap().clone() else {
-        window.emit(events::SAVE_FILE_NOT_SET, ()).unwrap();
-        return;
-    };
-
-    if !state.unsaved_changes.read().unwrap().clone() {
-        return;
-    }
-
-    let current_sprite = state.current_sprite.read().unwrap().clone();
-    fs::write(path, get_sprite(current_sprite)).unwrap();
-
-    *state.unsaved_changes.write().unwrap() = false;
-    state.update_window_title(window);
+    state.force_save(window);
 }
 
 #[tauri::command]
