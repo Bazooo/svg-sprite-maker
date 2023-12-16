@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::RwLock;
 use svg_sprite_parser::symbol::SvgSymbol;
+use tauri::api::dialog;
 use crate::config::ApplicationConfig;
 use crate::events;
 use crate::events::get_sprite;
@@ -16,7 +17,9 @@ pub struct ApplicationState {
 
 impl ApplicationState {
     pub fn update_window_title(&self, window: tauri::Window) {
-        let found_path = if let Some(path) = self.file_path.read().unwrap().clone() {
+        let fp = self.file_path.read().unwrap().clone();
+
+        let found_path = if let Some(path) = fp.clone() {
             path.clone().to_string_lossy().to_string()
         } else {
             "Untitled".to_string()
@@ -47,19 +50,44 @@ impl ApplicationState {
     }
 
     pub fn force_save(&self, window: tauri::Window) {
-        let Some(file_path) = self.file_path.read().unwrap().clone() else {
-            window.emit(events::SAVE_FILE_NOT_SET, ()).unwrap();
+        let Some(file_path) = self.get_save_file_path() else {
             return;
         };
 
-        if !self.unsaved_changes.read().unwrap().clone() {
+        self.save_to_file(file_path);
+        self.update_window_title(window);
+    }
+
+    fn get_save_file_path(&self) -> Option<PathBuf> {
+        let mut file_path_state = self.file_path.write().unwrap();
+
+        if let Some(file_path) = file_path_state.clone() {
+            Some(file_path)
+        } else {
+            let possible_file_path = dialog::blocking::FileDialogBuilder::new()
+                .add_filter("SVG Sprite", &["svg"])
+                .save_file();
+
+            let Some(file_path) = possible_file_path else {
+                return None;
+            };
+
+            file_path_state.replace(file_path.clone());
+
+            Some(file_path)
+        }
+    }
+
+    fn save_to_file(&self, file_path: PathBuf) {
+        let mut unsaved_changes_state = self.unsaved_changes.write().unwrap();
+
+        if !unsaved_changes_state.clone() {
             return;
         }
 
         let current_sprite = self.current_sprite.read().unwrap().clone();
         fs::write(file_path, get_sprite(current_sprite)).unwrap();
 
-        *self.unsaved_changes.write().unwrap() = false;
-        self.update_window_title(window);
+        *unsaved_changes_state = false;
     }
 }

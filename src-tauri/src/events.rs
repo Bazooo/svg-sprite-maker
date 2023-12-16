@@ -4,7 +4,6 @@ use svg_sprite_parser::symbol::SvgSymbol;
 pub const FILES_HOVERED: &str = "files-hovered";
 pub const FILES_HOVER_STOPPED: &str = "files-hover-stopped";
 pub const SPRITE_CHANGED: &str = "sprite-changed";
-pub const SAVE_FILE_NOT_SET: &str = "save-file-not-set";
 pub const UNSAVED_CHANGES: &str = "unsaved-changes";
 pub const SETTINGS_CHANGED: &str = "settings-changed";
 pub const EDITOR_NOT_SET: &str = "editor-not-set";

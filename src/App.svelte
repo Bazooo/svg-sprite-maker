@@ -6,35 +6,14 @@
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
     import { activeSymbolId, applicationSettings, settingsWindowOpen, sprite, symbolIds } from './store'
-    import { dialog, invoke } from '@tauri-apps/api'
+    import { invoke } from '@tauri-apps/api'
     import type { ApplicationSettings } from './types/applicationSettings'
     import Footer from './components/Footer/Footer.svelte'
     import Settings from './components/Settings/Settings.svelte'
+    import {handleShortcut} from "./shortcuts";
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
-    }
-
-    const changeSaveFilePath = async () => {
-        const path = await dialog.save({
-            defaultPath: 'sprite.svg',
-            filters: [{ name: 'SVG', extensions: ['svg'] }],
-        })
-        await invoke('set_save_file_path', { path })
-    }
-
-    const shortcutHandler = async (event: KeyboardEvent) => {
-        if (!event.ctrlKey) {
-            return
-        }
-
-        if (event.key === 's') {
-            if (event.shiftKey) {
-                await changeSaveFilePath()
-            } else {
-                await invoke('save')
-            }
-        }
     }
 
     onMount(async () => {
@@ -46,8 +25,6 @@
             sprite.set(event.payload.sprite)
         })
 
-        const unlistenSaveFileNotSet = await listen('save-file-not-set', changeSaveFilePath)
-
         const unlistenEditorNotSet = await listen('editor-not-set', () => {
             settingsWindowOpen.set(true)
         })
@@ -58,7 +35,6 @@
 
         return () => {
             unlistenSpriteChanged()
-            unlistenSaveFileNotSet()
             unlistenEditorNotSet()
             unlistenSettingsChanged()
         }
@@ -102,7 +78,7 @@
     {/if}
 </div>
 
-<svelte:window on:keydown={shortcutHandler} />
+<svelte:window on:keydown={handleShortcut} />
 
 <style>
     .symbols-grid {

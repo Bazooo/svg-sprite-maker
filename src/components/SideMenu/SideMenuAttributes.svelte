@@ -1,7 +1,7 @@
 <script lang="ts">
     import { activeSymbol, activeSymbolAttributes, activeSymbolId } from '../../store.js'
     import SymbolAttributeInput from './SymbolAttributeInput.svelte'
-    import NewAttributeForm from './NewAttributeForm.svelte'
+    import AddAttributeForm from './AddAttributeForm.svelte'
     import { invoke } from '@tauri-apps/api'
 
     const updateSymbolId = async (event: InputEvent) => {
@@ -29,6 +29,6 @@
             <span class="text-sm italic text-neutral-400">No attributes</span>
         {/if}
 
-        <NewAttributeForm />
+        <AddAttributeForm />
     </div>
 </div>

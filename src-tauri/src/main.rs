@@ -7,6 +7,7 @@ mod config;
 
 use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
 use tauri::{FileDropEvent, Manager, WindowEvent};
+use tauri::api::dialog;
 use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
@@ -18,7 +19,6 @@ use crate::app::ApplicationState;
 use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGridColor};
 
 // todo: error handling
-// todo: reset / new file
 // todo: multi selection delete
 // todo: filtering symbols by id / invalid / duplicate / colored
 // todo: auto-cleanup symbols
@@ -32,7 +32,7 @@ fn main() {
             get_svg_symbol,
             edit_svg_symbol,
             delete_svg_symbol,
-            set_save_file_path,
+            save_new_file,
             save,
             update_symbol_attribute,
             remove_symbol_attribute,
@@ -41,6 +41,7 @@ fn main() {
             get_app_settings,
             set_editor_path,
             set_transparency_grid_colors,
+            reset_app_state,
         ])
         .manage(ApplicationState::default())
         .setup(|app| {
@@ -193,6 +194,8 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
     // todo: check how to block the command if editor was already opened (VSCode)
     Command::new(editor_path)
         .arg(&temp_file_path)
+        .arg("-n")
+        .arg("-w")
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
@@ -227,17 +230,17 @@ fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>,
     state.auto_save(window);
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn save(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.force_save(window);
 }
 
-#[tauri::command]
-fn set_save_file_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
-    state.file_path.write().unwrap().replace(path);
+#[tauri::command(async)]
+fn save_new_file(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     *state.unsaved_changes.write().unwrap() = true;
+    state.file_path.write().unwrap().take();
 
-    save(state, window);
+    state.force_save(window);
 }
 
 #[tauri::command]
@@ -288,4 +291,22 @@ fn set_transparency_grid_colors(g1: Option<TransparencyGridColor>, g2: Option<Tr
     });
 
     window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+}
+
+#[tauri::command(async)]
+fn reset_app_state(state: tauri::State<'_, ApplicationState>, window: tauri::Window) -> bool {
+    let answer = dialog::blocking::confirm(Some(&window), "Reset symbol?", "Are you sure you want to reset the symbol?");
+
+    if !answer {
+        return false;
+    }
+
+    state.current_sprite.write().unwrap().clear();
+    state.file_path.write().unwrap().take();
+    *state.unsaved_changes.write().unwrap() = false;
+
+    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(Vec::new())).unwrap();
+    state.update_window_title(window);
+
+    true
 }

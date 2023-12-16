@@ -15,7 +15,7 @@
             "all": false,
             "dialog": {
                 "save": true,
-                "open": true
+                "confirm": true
             }
         },
         "bundle": {
