@@ -1,5 +1,5 @@
-import {invoke} from "@tauri-apps/api";
-import {activeSymbolId, sprite} from "./store";
+import { invoke } from '@tauri-apps/api'
+import { activeSymbolId, sprite } from './store'
 
 const resetAppState = async () => {
     const isReset = await invoke<boolean>('reset_app_state')
@@ -15,12 +15,12 @@ const resetAppState = async () => {
 type Shortcuts = Record<string, () => Promise<void>>
 
 const ctrlShortcuts: Shortcuts = {
-    's': () => invoke('save'),
-    'n': resetAppState,
+    s: () => invoke('save'),
+    n: resetAppState,
 }
 
 const ctrlShiftShortcuts: Shortcuts = {
-    's': () => invoke('save_new_file')
+    s: () => invoke('save_new_file'),
 }
 
 export const handleShortcut = async (event: KeyboardEvent) => {

@@ -24,7 +24,6 @@ use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGr
 // todo: auto-cleanup symbols
 // todo: sorting
 // todo: undo / redo
-// todo: add keybinds viewer
 
 fn main() {
     tauri::Builder::default()

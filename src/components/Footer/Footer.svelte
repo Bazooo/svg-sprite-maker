@@ -1,18 +1,36 @@
-<script>
-    import { mdiCog } from '@mdi/js'
-    import { settingsWindowOpen } from '../../store.ts'
+<script lang="ts">
+    import { mdiCog, mdiKeyboard } from '@mdi/js'
+    import { openedFooterWindow } from '../../store.ts'
+    import type { FooterWindow } from '../../store.ts'
 
-    const toggleSettingsWindow = () => {
-        settingsWindowOpen.set(!$settingsWindowOpen)
+    const toggleWindow = (window: FooterWindow) => () => {
+        if ($openedFooterWindow === window) {
+            openedFooterWindow.set(undefined)
+        } else {
+            openedFooterWindow.set(window)
+        }
     }
+
+    $: settingsWindowOpened = $openedFooterWindow === 'settings'
+    $: shortcutsWindowOpened = $openedFooterWindow === 'shortcuts'
 </script>
 
 <footer class="flex items-center border-t border-slate-300 bg-slate-200 px-2 dark:border-slate-700 dark:bg-slate-800">
-    <button class="h-full px-2 hover:bg-slate-300 active:bg-slate-400 hover:dark:bg-slate-700 active:dark:bg-slate-600" class:bg-slate-300={$settingsWindowOpen} class:dark:bg-slate-700={$settingsWindowOpen} on:click={toggleSettingsWindow}>
+    <button class:bg-slate-300={settingsWindowOpened} class:dark:bg-slate-700={settingsWindowOpened} on:click={toggleWindow('settings')}>
         <svg class="h-5 w-5" viewBox="0 0 24 24">
             <path d={mdiCog} />
         </svg>
     </button>
     <span class="grow" />
-    <kbd>Ctrl + S</kbd>
+    <button class:bg-slate-300={shortcutsWindowOpened} class:dark:bg-slate-700={shortcutsWindowOpened} on:click={toggleWindow('shortcuts')}>
+        <svg class="h-5 w-5" viewBox="0 0 24 24">
+            <path d={mdiKeyboard} />
+        </svg>
+    </button>
 </footer>
+
+<style lang="postcss">
+    button {
+        @apply h-full px-2 py-1 hover:bg-slate-300 active:bg-slate-400 hover:dark:bg-slate-700 active:dark:bg-slate-600;
+    }
+</style>

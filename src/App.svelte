@@ -5,12 +5,13 @@
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
-    import { activeSymbolId, applicationSettings, settingsWindowOpen, sprite, symbolIds } from './store'
+    import { activeSymbolId, applicationSettings, openedFooterWindow, sprite, symbolIds } from './store'
     import { invoke } from '@tauri-apps/api'
     import type { ApplicationSettings } from './types/applicationSettings'
     import Footer from './components/Footer/Footer.svelte'
-    import Settings from './components/Settings/Settings.svelte'
-    import {handleShortcut} from "./shortcuts";
+    import Settings from './components/FooterWindows/Settings.svelte'
+    import { handleShortcut } from './shortcuts'
+    import Shortcuts from './components/FooterWindows/Shortcuts.svelte'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -26,7 +27,7 @@
         })
 
         const unlistenEditorNotSet = await listen('editor-not-set', () => {
-            settingsWindowOpen.set(true)
+            openedFooterWindow.set('settings')
         })
 
         const unlistenSettingsChanged = await listen<ApplicationSettings>('settings-changed', (event) => {
@@ -60,8 +61,10 @@
                 {/if}
             </main>
 
-            {#if $settingsWindowOpen}
+            {#if $openedFooterWindow === 'settings'}
                 <Settings />
+            {:else if $openedFooterWindow === 'shortcuts'}
+                <Shortcuts />
             {/if}
         </div>
 

@@ -36,7 +36,7 @@
     </button>
 </div>
 
-<style>
+<style lang="postcss">
     label {
         @apply flex items-center gap-1 rounded border border-slate-400 p-1 focus-within:border-slate-500 hover:border-slate-500;
 

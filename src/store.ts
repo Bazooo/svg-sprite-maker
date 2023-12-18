@@ -4,11 +4,19 @@ import type { SvgSymbol } from './types/symbol'
 import type { SymbolAttribute } from './types/symbolAttribute'
 import type { ApplicationSettings } from './types/applicationSettings'
 
+const footerWindows = [
+    // windows
+    'settings',
+    'shortcuts',
+] as const
+
+export type FooterWindow = (typeof footerWindows)[number]
+
 export const sprite = writable<string | undefined>()
 export const symbolIds = writable<string[]>([])
 export const activeSymbolId = writable<string | undefined>()
 export const applicationSettings = writable<ApplicationSettings | undefined>()
-export const settingsWindowOpen = writable<boolean>(false)
+export const openedFooterWindow = writable<FooterWindow | undefined>()
 
 export const activeSymbol: Readable<SvgSymbol | undefined> = derived([activeSymbolId, sprite], ([$activeSymbolId], set) => {
     if ($activeSymbolId) {

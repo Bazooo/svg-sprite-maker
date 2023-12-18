@@ -67,7 +67,7 @@
     {/if}
 </aside>
 
-<style>
+<style lang="postcss">
     .toggle-button {
         @apply cursor-pointer rounded border p-1 hover:bg-slate-200 hover:dark:bg-slate-800;
     }
