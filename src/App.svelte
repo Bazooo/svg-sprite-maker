@@ -12,6 +12,7 @@
     import Settings from './components/FooterWindows/Settings.svelte'
     import { handleShortcut } from './shortcuts'
     import Shortcuts from './components/FooterWindows/Shortcuts.svelte'
+    import FilterBar from './components/FilterBar/FilterBar.svelte'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -47,6 +48,7 @@
         <FileHoverIndicator />
 
         <div class="flex grow flex-col">
+            <FilterBar />
             <main class="grow overflow-y-auto">
                 {#if !$sprite}
                     <div class="flex h-full w-full items-center justify-center">

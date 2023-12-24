@@ -20,7 +20,6 @@ use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGr
 
 // todo: error handling
 // todo: multi selection delete
-// todo: filtering symbols by id / invalid / duplicate / colored
 // todo: auto-cleanup symbols
 // todo: sorting
 // todo: undo / redo
@@ -41,6 +40,7 @@ fn main() {
             set_editor_path,
             set_transparency_grid_colors,
             reset_app_state,
+            search_symbols_by_id,
         ])
         .manage(ApplicationState::default())
         .setup(|app| {
@@ -309,3 +309,23 @@ fn reset_app_state(state: tauri::State<'_, ApplicationState>, window: tauri::Win
 
     true
 }
+
+// todo: search symbols by id
+#[tauri::command]
+fn search_symbols_by_id(query: &str, state: tauri::State<'_, ApplicationState>) -> Vec<String> {
+    let sprite = state.current_sprite.read().unwrap();
+
+    if query.is_empty() {
+        return sprite.iter().map(|symbol| symbol.id.clone()).collect();
+    }
+
+    sprite.iter().filter_map(|symbol| {
+        if symbol.id.contains(&query) {
+            Some(symbol.id.clone())
+        } else {
+            None
+        }
+    }).collect()
+}
+
+// todo: filtering symbols by invalid / duplicate / colored
