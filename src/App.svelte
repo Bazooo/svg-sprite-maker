@@ -12,7 +12,7 @@
     import Settings from './components/FooterWindows/Settings.svelte'
     import { handleShortcut } from './shortcuts'
     import Shortcuts from './components/FooterWindows/Shortcuts.svelte'
-    import FilterBar from './components/FilterBar/FilterBar.svelte'
+    import ToolBar from './components/ToolBar/ToolBar.svelte'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -43,12 +43,13 @@
     })
 </script>
 
-<div class="flex h-full flex-col bg-slate-50 text-neutral-800 dark:bg-slate-950 dark:text-neutral-200" role="main">
+<div class="flex h-full flex-col border-t border-slate-300 bg-slate-50 text-neutral-800 dark:bg-slate-950 dark:text-neutral-200" role="main">
     <div class="relative flex grow overflow-hidden">
         <FileHoverIndicator />
-
         <div class="flex grow flex-col">
-            <FilterBar />
+            {#if $symbolIds.length > 0}
+                <ToolBar />
+            {/if}
             <main class="grow overflow-y-auto">
                 {#if !$sprite}
                     <div class="flex h-full w-full items-center justify-center">
@@ -57,7 +58,7 @@
                 {:else if $symbolIds.length > 0}
                     <div class="symbols-grid grid justify-center gap-4 p-3">
                         {#each $symbolIds as symbolId (symbolId)}
-                            <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
+                            <SymbolButton symbolId={symbolId} on:click={setActiveSymbolId(symbolId)} />
                         {/each}
                     </div>
                 {/if}
@@ -70,7 +71,7 @@
             {/if}
         </div>
 
-        {#if $sprite}
+        {#if $symbolIds.length > 0}
             <SideMenu />
         {/if}
     </div>

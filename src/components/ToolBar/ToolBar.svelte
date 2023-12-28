@@ -12,12 +12,11 @@
     }
 </script>
 
-<aside class="flex justify-between gap-2 border-b border-slate-300 p-1 dark:border-slate-700">
-    <div></div>
-    <label class="flex items-center gap-2">
+<aside class="flex flex-col justify-center gap-1 p-4">
+    <label class="flex items-center gap-2 rounded border border-slate-300 p-1 dark:border-slate-700">
         <svg class="h-5 w-5 fill-current text-slate-600" viewBox="0 0 24 24">
             <path d={mdiMagnify} />
         </svg>
-        <input type="text" class="bg-transparent placeholder-slate-300 outline-0" placeholder="Search by ID" on:input={searchIds} />
+        <input type="text" class="bg-transparent placeholder-slate-300 outline-0" placeholder="Search ID..." on:input={searchIds} />
     </label>
 </aside>

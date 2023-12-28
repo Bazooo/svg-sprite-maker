@@ -15,7 +15,7 @@
     $: shortcutsWindowOpened = $openedFooterWindow === 'shortcuts'
 </script>
 
-<footer class="flex items-center border-t border-slate-300 bg-slate-200 px-2 dark:border-slate-700 dark:bg-slate-800">
+<footer class="px-2bg-slate-200 flex items-center border-t border-slate-300 dark:border-slate-700 dark:bg-slate-800">
     <button class:bg-slate-300={settingsWindowOpened} class:dark:bg-slate-700={settingsWindowOpened} on:click={toggleWindow('settings')}>
         <svg class="h-5 w-5" viewBox="0 0 24 24">
             <path d={mdiCog} />
