@@ -6,21 +6,22 @@
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
     import { activeSymbolId, applicationSettings, openedFooterWindow, sprite, symbolIds } from './store'
-    import { invoke } from '@tauri-apps/api'
-    import type { ApplicationSettings } from './types/applicationSettings'
     import Footer from './components/Footer/Footer.svelte'
     import Settings from './components/FooterWindows/Settings.svelte'
     import { handleShortcut } from './shortcuts'
     import Shortcuts from './components/FooterWindows/Shortcuts.svelte'
     import ToolBar from './components/ToolBar/ToolBar.svelte'
+    import { type ApplicationConfigSettings, commands } from './types/bindings'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
     }
 
     onMount(async () => {
-        const currentApplicationSettings = await invoke<ApplicationSettings>('get_app_settings')
-        applicationSettings.set(currentApplicationSettings)
+        const currentApplicationSettings = await commands.getAppSettings()
+        if (currentApplicationSettings) {
+            applicationSettings.set(currentApplicationSettings)
+        }
 
         const unlistenSpriteChanged = await listen<SpriteChangedEvent>('sprite-changed', (event) => {
             symbolIds.set(event.payload.ids)
@@ -31,7 +32,7 @@
             openedFooterWindow.set('settings')
         })
 
-        const unlistenSettingsChanged = await listen<ApplicationSettings>('settings-changed', (event) => {
+        const unlistenSettingsChanged = await listen<ApplicationConfigSettings>('settings-changed', (event) => {
             applicationSettings.set(event.payload)
         })
 
@@ -58,7 +59,7 @@
                 {:else if $symbolIds.length > 0}
                     <div class="symbols-grid grid justify-center gap-4 p-3">
                         {#each $symbolIds as symbolId (symbolId)}
-                            <SymbolButton symbolId={symbolId} on:click={setActiveSymbolId(symbolId)} />
+                            <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
                         {/each}
                     </div>
                 {/if}

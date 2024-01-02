@@ -4,6 +4,7 @@
     import { dialog, invoke } from '@tauri-apps/api'
     import TransparentGrid from '../TransparentGrid.svelte'
     import FooterWindow from './FooterWindow.svelte'
+    import { commands } from '../../types/bindings'
 
     const setEditorPath = async () => {
         const path = await dialog.open({
@@ -14,48 +15,36 @@
         })
 
         if (path) {
-            await invoke('set_editor_path', { path })
+            await commands.setEditorPath(path as string)
         }
     }
 
     const toggleDarkMode = async () => {
-        await invoke('set_dark_mode', { enabled: !$applicationSettings?.darkMode })
+        await commands.setDarkMode(!$applicationSettings?.darkMode)
     }
 
     const toggleAutoSave = async () => {
-        await invoke('set_auto_save', { enabled: !$applicationSettings?.autoSaveEnabled })
+        await commands.setAutoSave(!$applicationSettings?.autoSaveEnabled)
     }
 
     const setTransparencyGridColor = (isFirst: boolean) => async (event: InputEvent) => {
         const target = event.currentTarget as HTMLInputElement
 
-        const payload = isFirst
-            ? {
-                  g1: [target.value, $applicationSettings?.transparencyGridColor1?.[1] ?? 0.1],
-                  g2: $applicationSettings?.transparencyGridColor2,
-              }
-            : {
-                  g1: $applicationSettings?.transparencyGridColor1,
-                  g2: [target.value, $applicationSettings?.transparencyGridColor2?.[1] ?? 0.1],
-              }
-
-        await invoke('set_transparency_grid_colors', payload)
+        if (isFirst) {
+            await commands.setTransparencyGridColors([target.value, $applicationSettings?.transparencyGridColor1?.[1] ?? 0.1], $applicationSettings?.transparencyGridColor2 ?? null)
+        } else {
+            await commands.setTransparencyGridColors($applicationSettings?.transparencyGridColor1 ?? null, [target.value, $applicationSettings?.transparencyGridColor2?.[1] ?? 0.1])
+        }
     }
 
     const setOpacityGridColor = (isFirst: boolean) => async (event: InputEvent) => {
         const target = event.currentTarget as HTMLInputElement
 
-        const payload = isFirst
-            ? {
-                  g1: [$applicationSettings?.transparencyGridColor1?.[0] ?? 'black', target.valueAsNumber],
-                  g2: $applicationSettings?.transparencyGridColor2,
-              }
-            : {
-                  g1: $applicationSettings?.transparencyGridColor1,
-                  g2: [$applicationSettings?.transparencyGridColor2?.[0] ?? 'transparent', target.valueAsNumber],
-              }
-
-        await invoke('set_transparency_grid_colors', payload)
+        if (isFirst) {
+            await commands.setTransparencyGridColors([$applicationSettings?.transparencyGridColor1?.[0] ?? 'black', target.valueAsNumber], $applicationSettings?.transparencyGridColor2 ?? null)
+        } else {
+            await commands.setTransparencyGridColors($applicationSettings?.transparencyGridColor1 ?? null, [$applicationSettings?.transparencyGridColor2?.[0] ?? 'transparent', target.valueAsNumber])
+        }
     }
 </script>
 

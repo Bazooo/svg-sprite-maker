@@ -5,16 +5,17 @@
     import SymbolPreviewGrid from './SymbolPreviewGrid.svelte'
     import TransparentGrid from '../TransparentGrid.svelte'
     import SideMenuAttributes from './SideMenuAttributes.svelte'
+    import { commands } from '../../types/bindings'
 
     let showGrid = true
     let showTransparentGrid = true
 
     const editSymbol = (symbolId: string) => async () => {
-        await invoke('edit_svg_symbol', { symbolId })
+        await commands.editSvgSymbol(symbolId)
     }
 
     const deleteSymbol = (symbolId: string) => async () => {
-        await invoke('delete_svg_symbol', { symbolId })
+        await commands.deleteSvgSymbol(symbolId)
         activeSymbolId.set(undefined)
     }
 </script>

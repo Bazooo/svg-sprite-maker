@@ -1,17 +1,16 @@
 <script lang="ts">
-    import { activeSymbol, activeSymbolAttributes, activeSymbolId } from '../../store.js'
+    import { activeSymbol, activeSymbolAttributes, activeSymbolId } from '../../store'
     import SymbolAttributeInput from './SymbolAttributeInput.svelte'
     import AddAttributeForm from './AddAttributeForm.svelte'
-    import { invoke } from '@tauri-apps/api'
+    import { commands } from '../../types/bindings'
 
     const updateSymbolId = async (event: InputEvent) => {
-        const target = event.currentTarget as HTMLInputElement
+        if (typeof $activeSymbolId === 'undefined') {
+            return
+        }
 
-        await invoke('update_symbol_attribute', {
-            symbolId: $activeSymbolId,
-            key: 'id',
-            value: target.value,
-        })
+        const target = event.currentTarget as HTMLInputElement
+        await commands.updateSymbolAttribute($activeSymbolId, 'id', target.value)
 
         activeSymbolId.set(target.value)
     }

@@ -25,23 +25,33 @@ use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGr
 // todo: undo / redo
 
 fn main() {
+    let specta_builder = {
+        let specta_builder = tauri_specta::ts::builder()
+            .commands(tauri_specta::collect_commands![
+                get_svg_symbol,
+                edit_svg_symbol,
+                delete_svg_symbol,
+                save_new_file,
+                save,
+                update_symbol_attribute,
+                remove_symbol_attribute,
+                set_auto_save,
+                set_dark_mode,
+                get_app_settings,
+                set_editor_path,
+                set_transparency_grid_colors,
+                reset_app_state,
+                search_symbols_by_id,
+            ]);
+
+        #[cfg(debug_assertions)]
+        let specta_builder = specta_builder.path("../src/types/bindings.ts");
+
+        specta_builder.into_plugin()
+    };
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![
-            get_svg_symbol,
-            edit_svg_symbol,
-            delete_svg_symbol,
-            save_new_file,
-            save,
-            update_symbol_attribute,
-            remove_symbol_attribute,
-            set_auto_save,
-            set_dark_mode,
-            get_app_settings,
-            set_editor_path,
-            set_transparency_grid_colors,
-            reset_app_state,
-            search_symbols_by_id,
-        ])
+        .plugin(specta_builder)
         .manage(ApplicationState::default())
         .setup(|app| {
             let binding = app.windows();
@@ -105,13 +115,14 @@ fn main() {
         .expect("error while running tauri application");
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, specta::Type)]
 struct Symbol {
     id: String,
     attributes: HashMap<String, String>,
 }
 
 #[tauri::command]
+#[specta::specta]
 fn get_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>) -> Option<Symbol> {
     state.current_sprite.read().unwrap().iter()
         .find(|symbol| symbol.id == symbol_id)
@@ -124,6 +135,7 @@ fn get_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>) ->
 }
 
 #[tauri::command]
+#[specta::specta]
 fn update_symbol_attribute(symbol_id: &str, key: &str, value: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.current_sprite.write().unwrap().iter_mut()
         .find(|symbol| symbol.id == symbol_id)
@@ -142,6 +154,7 @@ fn update_symbol_attribute(symbol_id: &str, key: &str, value: &str, state: tauri
 }
 
 #[tauri::command]
+#[specta::specta]
 fn remove_symbol_attribute(symbol_id: &str, key: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.current_sprite.write().unwrap().iter_mut()
         .find(|symbol| symbol.id == symbol_id)
@@ -156,6 +169,7 @@ fn remove_symbol_attribute(symbol_id: &str, key: &str, state: tauri::State<'_, A
 }
 
 #[tauri::command(async)]
+#[specta::specta]
 fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let Some(symbol) = state.current_sprite.read().unwrap().iter().find(|symbol| symbol.id == symbol_id).map(|symbol| symbol.to_string()) else {
         return;
@@ -221,6 +235,7 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
 }
 
 #[tauri::command]
+#[specta::specta]
 fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
     let current_sprite = state.current_sprite.read().unwrap().clone();
@@ -230,11 +245,13 @@ fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>,
 }
 
 #[tauri::command(async)]
+#[specta::specta]
 fn save(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.force_save(window);
 }
 
 #[tauri::command(async)]
+#[specta::specta]
 fn save_new_file(state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     *state.unsaved_changes.write().unwrap() = true;
     state.file_path.write().unwrap().take();
@@ -243,6 +260,7 @@ fn save_new_file(state: tauri::State<'_, ApplicationState>, window: tauri::Windo
 }
 
 #[tauri::command]
+#[specta::specta]
 fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let mut app_config = state.config.write().unwrap();
 
@@ -254,6 +272,7 @@ fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>, windo
 }
 
 #[tauri::command]
+#[specta::specta]
 fn set_dark_mode(enabled: bool, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let mut app_config = state.config.write().unwrap();
 
@@ -265,11 +284,13 @@ fn set_dark_mode(enabled: bool, state: tauri::State<'_, ApplicationState>, windo
 }
 
 #[tauri::command]
+#[specta::specta]
 fn get_app_settings(state: tauri::State<'_, ApplicationState>) -> ApplicationConfigSettings {
     state.config.read().unwrap().settings.clone()
 }
 
 #[tauri::command]
+#[specta::specta]
 fn set_editor_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let mut app_config = state.config.write().unwrap();
 
@@ -281,6 +302,7 @@ fn set_editor_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, win
 }
 
 #[tauri::command]
+#[specta::specta]
 fn set_transparency_grid_colors(g1: Option<TransparencyGridColor>, g2: Option<TransparencyGridColor>, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     let mut app_config = state.config.write().unwrap();
 
@@ -293,6 +315,7 @@ fn set_transparency_grid_colors(g1: Option<TransparencyGridColor>, g2: Option<Tr
 }
 
 #[tauri::command(async)]
+#[specta::specta]
 fn reset_app_state(state: tauri::State<'_, ApplicationState>, window: tauri::Window) -> bool {
     let answer = dialog::blocking::confirm(Some(&window), "Reset symbol?", "Are you sure you want to reset the symbol?");
 
@@ -310,8 +333,8 @@ fn reset_app_state(state: tauri::State<'_, ApplicationState>, window: tauri::Win
     true
 }
 
-// todo: search symbols by id
 #[tauri::command]
+#[specta::specta]
 fn search_symbols_by_id(query: &str, state: tauri::State<'_, ApplicationState>) -> Vec<String> {
     let sprite = state.current_sprite.read().unwrap();
 

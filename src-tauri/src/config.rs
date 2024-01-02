@@ -1,7 +1,7 @@
 use std::{fs, io, path};
 use derive_builder::Builder;
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, specta::Type)]
 pub struct TransparencyGridColor(String, f32);
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Default)]
@@ -12,7 +12,7 @@ pub struct ApplicationConfig {
     pub settings: ApplicationConfigSettings,
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Builder, Default, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Builder, Default, Debug, Clone, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct ApplicationConfigSettings {
     // Generic

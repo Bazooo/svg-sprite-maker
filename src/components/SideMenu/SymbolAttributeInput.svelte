@@ -1,24 +1,17 @@
 <script lang="ts">
     import type { SymbolAttribute } from '../../types/symbolAttribute'
     import { mdiDelete } from '@mdi/js'
-    import { invoke } from '@tauri-apps/api'
+    import { commands } from '../../types/bindings'
 
     export let symbolId: string
     export let symbolAttribute: SymbolAttribute
 
     const removeSymbolAttribute = async () => {
-        await invoke('remove_symbol_attribute', {
-            symbolId,
-            key: symbolAttribute.key,
-        })
+        await commands.removeSymbolAttribute(symbolId, symbolAttribute.key)
     }
 
     const updateSymbolAttribute = async () => {
-        await invoke('update_symbol_attribute', {
-            symbolId,
-            key: symbolAttribute.key,
-            value: symbolAttribute.value,
-        })
+        await commands.updateSymbolAttribute(symbolId, symbolAttribute.key, symbolAttribute.value)
     }
 </script>
 

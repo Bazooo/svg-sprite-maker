@@ -1,13 +1,13 @@
 <script lang="ts">
     import { symbolIds } from '../../store'
     import type { KeyboardEventHandler } from 'svelte/elements'
-    import { invoke } from '@tauri-apps/api'
     import { mdiMagnify } from '@mdi/js'
+    import { commands } from '../../types/bindings'
 
     const searchIds: KeyboardEventHandler<HTMLInputElement> = async (event) => {
         const query = event.currentTarget.value
 
-        const ids = await invoke<string[]>('search_symbols_by_id', { query })
+        const ids = await commands.searchSymbolsById(query)
         symbolIds.set(ids)
     }
 </script>

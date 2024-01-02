@@ -1,17 +1,17 @@
 <script lang="ts">
     import { mdiPlus } from '@mdi/js'
-    import { invoke } from '@tauri-apps/api'
     import { activeSymbolId } from '../../store'
+    import { commands } from '../../types/bindings'
 
     let key = ''
     let value = ''
 
     const addAttribute = async () => {
-        await invoke('update_symbol_attribute', {
-            symbolId: $activeSymbolId,
-            key,
-            value,
-        })
+        if (typeof $activeSymbolId === 'undefined') {
+            return
+        }
+
+        await commands.updateSymbolAttribute($activeSymbolId, key, value)
 
         key = ''
         value = ''

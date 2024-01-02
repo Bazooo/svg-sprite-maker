@@ -1,8 +1,8 @@
 import { derived, type Readable, writable } from 'svelte/store'
-import { invoke } from '@tauri-apps/api'
 import type { SvgSymbol } from './types/symbol'
 import type { SymbolAttribute } from './types/symbolAttribute'
-import type { ApplicationSettings } from './types/applicationSettings'
+import type { ApplicationConfigSettings } from './types/bindings'
+import { commands } from './types/bindings'
 
 const footerWindows = [
     // windows
@@ -15,12 +15,12 @@ export type FooterWindow = (typeof footerWindows)[number]
 export const sprite = writable<string | undefined>()
 export const symbolIds = writable<string[]>([])
 export const activeSymbolId = writable<string | undefined>()
-export const applicationSettings = writable<ApplicationSettings | undefined>()
+export const applicationSettings = writable<ApplicationConfigSettings | undefined>()
 export const openedFooterWindow = writable<FooterWindow | undefined>()
 
 export const activeSymbol: Readable<SvgSymbol | undefined> = derived([activeSymbolId, sprite], ([$activeSymbolId], set) => {
     if ($activeSymbolId) {
-        invoke<SvgSymbol>('get_svg_symbol', { symbolId: $activeSymbolId }).then((symbol) => set(symbol))
+        commands.getSvgSymbol($activeSymbolId).then((symbol) => set(symbol ?? undefined))
     } else {
         set(undefined)
     }
