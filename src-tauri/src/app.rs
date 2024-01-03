@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::sync::RwLock;
 use svg_sprite_parser::symbol::SvgSymbol;
 use tauri::api::dialog;
+use tauri_specta::Event;
 use crate::config::ApplicationConfig;
-use crate::events;
-use crate::events::get_sprite;
+use crate::events::{get_sprite, UnsavedChangesEvent};
 
 #[derive(Default)]
 pub struct ApplicationState {
@@ -44,7 +44,7 @@ impl ApplicationState {
         } else {
             let path = self.file_path.read().unwrap().clone();
 
-            window.emit(events::UNSAVED_CHANGES, events::UnsavedChangesEvent::from(path)).unwrap();
+            UnsavedChangesEvent::from(path).emit(&window).unwrap();
             self.update_window_title(window);
         }
     }

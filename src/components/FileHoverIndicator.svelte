@@ -2,6 +2,7 @@
     import { mdiCreation } from '@mdi/js'
     import { listen } from '@tauri-apps/api/event'
     import { onMount } from 'svelte'
+    import { events } from '../types/bindings'
 
     let hovering = false
     let hovered = 0
@@ -11,11 +12,11 @@
             hovering = true
         })
 
-        const unlistenHoverStop = await listen('files-hover-stopped', () => {
+        const unlistenHoverStop = await events.filesHoverStoppedEvent.listen(() => {
             hovering = false
         })
 
-        const unlistenFilesHovered = await listen<number>('files-hovered', (event) => {
+        const unlistenFilesHovered = await events.filesHoveredEvent.listen((event) => {
             hovered = event.payload
         })
 

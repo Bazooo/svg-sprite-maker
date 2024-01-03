@@ -1,14 +1,14 @@
 use std::path::PathBuf;
 use svg_sprite_parser::symbol::SvgSymbol;
+use crate::config::ApplicationConfigSettings;
 
-pub const FILES_HOVERED: &str = "files-hovered";
-pub const FILES_HOVER_STOPPED: &str = "files-hover-stopped";
-pub const SPRITE_CHANGED: &str = "sprite-changed";
-pub const UNSAVED_CHANGES: &str = "unsaved-changes";
-pub const SETTINGS_CHANGED: &str = "settings-changed";
-pub const EDITOR_NOT_SET: &str = "editor-not-set";
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub struct FilesHoveredEvent(pub i32);
 
-#[derive(serde::Serialize, Clone)]
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub struct FilesHoverStoppedEvent();
+
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
 pub struct SpriteChangedEvent {
     pub ids: Vec<String>,
     pub sprite: String,
@@ -26,17 +26,6 @@ impl From<Vec<SvgSymbol>> for SpriteChangedEvent {
     }
 }
 
-#[derive(serde::Serialize, Clone)]
-pub struct UnsavedChangesEvent {
-    pub path: Option<PathBuf>,
-}
-
-impl From<Option<PathBuf>> for UnsavedChangesEvent {
-    fn from(path: Option<PathBuf>) -> Self {
-        Self { path }
-    }
-}
-
 pub fn get_sprite(symbols: Vec<SvgSymbol>) -> String {
     let mut string = vec!["<svg xmlns=\"http://www.w3.org/2000/svg\"><defs>".to_string()];
 
@@ -47,3 +36,20 @@ pub fn get_sprite(symbols: Vec<SvgSymbol>) -> String {
     string.push("</defs></svg>".to_string());
     string.join("")
 }
+
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub struct UnsavedChangesEvent {
+    pub path: Option<PathBuf>,
+}
+
+impl From<Option<PathBuf>> for UnsavedChangesEvent {
+    fn from(path: Option<PathBuf>) -> Self {
+        Self { path }
+    }
+}
+
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub struct SettingsChangedEvent(pub ApplicationConfigSettings);
+
+#[derive(serde::Serialize, Clone, specta::Type, tauri_specta::Event)]
+pub struct EditorNotSetEvent();

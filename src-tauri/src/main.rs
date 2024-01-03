@@ -14,9 +14,11 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use svg_sprite_parser::symbol::SvgSymbol;
+use tauri_specta::Event;
 use xml::{EmitterConfig, ParserConfig};
 use crate::app::ApplicationState;
 use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGridColor};
+use crate::events::{ FilesHoveredEvent, FilesHoverStoppedEvent, SpriteChangedEvent, UnsavedChangesEvent, SettingsChangedEvent, EditorNotSetEvent };
 
 // todo: error handling
 // todo: multi selection delete
@@ -42,6 +44,14 @@ fn main() {
                 set_transparency_grid_colors,
                 reset_app_state,
                 search_symbols_by_id,
+            ])
+            .events(tauri_specta::collect_events![
+                FilesHoveredEvent,
+                FilesHoverStoppedEvent,
+                SpriteChangedEvent,
+                UnsavedChangesEvent,
+                SettingsChangedEvent,
+                EditorNotSetEvent
             ]);
 
         #[cfg(debug_assertions)]
@@ -76,7 +86,13 @@ fn main() {
                                     }
                                 });
 
-                            target_window.emit(events::FILES_HOVERED, num_symbols).unwrap();
+                            let num_symbols = if let Ok(num_symbols) = i32::try_from(num_symbols) {
+                                num_symbols
+                            } else {
+                                -1
+                            };
+
+                            FilesHoveredEvent(num_symbols).emit(&target_window).unwrap();
                         }
                         FileDropEvent::Dropped(dropped_files) => {
                             let mut symbols: Vec<_> = dropped_files.iter()
@@ -88,7 +104,7 @@ fn main() {
                                 .collect();
 
                             if symbols.is_empty() {
-                                target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
+                                FilesHoverStoppedEvent().emit(&target_window).unwrap();
                                 return;
                             }
 
@@ -97,13 +113,13 @@ fn main() {
 
                             let current_sprite = state.current_sprite.read().unwrap().clone();
 
-                            target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
-                            target_window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+                            FilesHoverStoppedEvent().emit(&target_window).unwrap();
+                            SpriteChangedEvent::from(current_sprite).emit(&target_window).unwrap();
 
                             state.auto_save(target_window.clone());
                         }
                         _ => {
-                            target_window.emit(events::FILES_HOVER_STOPPED, ()).unwrap();
+                            FilesHoverStoppedEvent().emit(&target_window).unwrap();
                         },
                     }
                 }
@@ -148,7 +164,7 @@ fn update_symbol_attribute(symbol_id: &str, key: &str, value: &str, state: tauri
         });
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
-    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+    SpriteChangedEvent::from(current_sprite).emit(&window).unwrap();
 
     state.auto_save(window);
 }
@@ -163,7 +179,7 @@ fn remove_symbol_attribute(symbol_id: &str, key: &str, state: tauri::State<'_, A
         });
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
-    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+    SpriteChangedEvent::from(current_sprite).emit(&window).unwrap();
 
     state.auto_save(window);
 }
@@ -200,7 +216,7 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
     let temp_file_path = temp_file.into_temp_path();
 
     let Some(editor_path) = state.config.read().unwrap().settings.editor_path.clone() else {
-        window.emit(events::EDITOR_NOT_SET, ()).unwrap();
+        EditorNotSetEvent().emit(&window).unwrap();
         return;
     };
 
@@ -229,7 +245,7 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
         .map(|symbol| *symbol = new_symbol);
 
     let current_sprite = state.current_sprite.read().unwrap().clone();
-    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+    SpriteChangedEvent::from(current_sprite).emit(&window).unwrap();
 
     state.auto_save(window);
 }
@@ -239,7 +255,7 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
 fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
     state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
     let current_sprite = state.current_sprite.read().unwrap().clone();
-    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(current_sprite)).unwrap();
+    SpriteChangedEvent::from(current_sprite).emit(&window).unwrap();
 
     state.auto_save(window);
 }
@@ -268,7 +284,7 @@ fn set_auto_save(enabled: bool, state: tauri::State<'_, ApplicationState>, windo
         builder.auto_save_enabled(enabled)
     });
 
-    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+    SettingsChangedEvent(app_config.settings.clone()).emit(&window).unwrap();
 }
 
 #[tauri::command]
@@ -280,7 +296,7 @@ fn set_dark_mode(enabled: bool, state: tauri::State<'_, ApplicationState>, windo
         builder.dark_mode(enabled)
     });
 
-    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+    SettingsChangedEvent(app_config.settings.clone()).emit(&window).unwrap();
 }
 
 #[tauri::command]
@@ -298,7 +314,7 @@ fn set_editor_path(path: PathBuf, state: tauri::State<'_, ApplicationState>, win
         builder.editor_path(Some(path))
     });
 
-    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+    SettingsChangedEvent(app_config.settings.clone()).emit(&window).unwrap();
 }
 
 #[tauri::command]
@@ -311,7 +327,7 @@ fn set_transparency_grid_colors(g1: Option<TransparencyGridColor>, g2: Option<Tr
             .transparency_grid_color_2(g2)
     });
 
-    window.emit(events::SETTINGS_CHANGED, app_config.settings.clone()).unwrap();
+    SettingsChangedEvent(app_config.settings.clone()).emit(&window).unwrap();
 }
 
 #[tauri::command(async)]
@@ -327,7 +343,7 @@ fn reset_app_state(state: tauri::State<'_, ApplicationState>, window: tauri::Win
     state.file_path.write().unwrap().take();
     *state.unsaved_changes.write().unwrap() = false;
 
-    window.emit(events::SPRITE_CHANGED, events::SpriteChangedEvent::from(Vec::new())).unwrap();
+    SpriteChangedEvent::from(Vec::new()).emit(&window).unwrap();
     state.update_window_title(window);
 
     true

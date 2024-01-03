@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { listen } from '@tauri-apps/api/event'
-    import type { SpriteChangedEvent } from './types/spriteChangedEvent'
     import SideMenu from './components/SideMenu/SideMenu.svelte'
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
@@ -11,7 +9,7 @@
     import { handleShortcut } from './shortcuts'
     import Shortcuts from './components/FooterWindows/Shortcuts.svelte'
     import ToolBar from './components/ToolBar/ToolBar.svelte'
-    import { type ApplicationConfigSettings, commands } from './types/bindings'
+    import { commands, events } from './types/bindings'
 
     const setActiveSymbolId = (id: string) => () => {
         activeSymbolId.set(id)
@@ -23,16 +21,16 @@
             applicationSettings.set(currentApplicationSettings)
         }
 
-        const unlistenSpriteChanged = await listen<SpriteChangedEvent>('sprite-changed', (event) => {
+        const unlistenSpriteChanged = await events.spriteChangedEvent.listen((event) => {
             symbolIds.set(event.payload.ids)
             sprite.set(event.payload.sprite)
         })
 
-        const unlistenEditorNotSet = await listen('editor-not-set', () => {
+        const unlistenEditorNotSet = await events.editorNotSetEvent.listen(() => {
             openedFooterWindow.set('settings')
         })
 
-        const unlistenSettingsChanged = await listen<ApplicationConfigSettings>('settings-changed', (event) => {
+        const unlistenSettingsChanged = await events.settingsChangedEvent.listen((event) => {
             applicationSettings.set(event.payload)
         })
 
