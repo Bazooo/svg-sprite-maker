@@ -21,7 +21,6 @@ use crate::config::{ApplicationConfig, ApplicationConfigSettings, TransparencyGr
 use crate::events::{ FilesHoveredEvent, FilesHoverStoppedEvent, SpriteChangedEvent, UnsavedChangesEvent, SettingsChangedEvent, EditorNotSetEvent };
 
 // todo: error handling
-// todo: multi selection delete
 // todo: auto-cleanup symbols
 // todo: sorting
 // todo: undo / redo
@@ -32,7 +31,7 @@ fn main() {
             .commands(tauri_specta::collect_commands![
                 get_svg_symbol,
                 edit_svg_symbol,
-                delete_svg_symbol,
+                delete_svg_symbols,
                 save_new_file,
                 save,
                 update_symbol_attribute,
@@ -254,8 +253,8 @@ fn edit_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, w
 
 #[tauri::command]
 #[specta::specta]
-fn delete_svg_symbol(symbol_id: &str, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
-    state.current_sprite.write().unwrap().retain(|symbol| symbol.id != symbol_id);
+fn delete_svg_symbols(symbol_ids: Vec<&str>, state: tauri::State<'_, ApplicationState>, window: tauri::Window) {
+    state.current_sprite.write().unwrap().retain(|symbol| symbol_ids.iter().all(|&id| id != &symbol.id));
     let current_sprite = state.current_sprite.read().unwrap().clone();
     SpriteChangedEvent::from(current_sprite).emit(&window).unwrap();
 

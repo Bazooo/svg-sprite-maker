@@ -1,4 +1,4 @@
-import { activeSymbolId, sprite } from './store'
+import { activeSymbolIds, sprite } from './store'
 import { commands } from './types/bindings'
 
 const resetAppState = async () => {
@@ -8,7 +8,7 @@ const resetAppState = async () => {
         return
     }
 
-    activeSymbolId.set(undefined)
+    activeSymbolIds.set([])
     sprite.set(undefined)
 }
 

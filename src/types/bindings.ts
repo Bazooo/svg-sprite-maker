@@ -9,8 +9,8 @@ return await TAURI_INVOKE("plugin:tauri-specta|get_svg_symbol", { symbolId });
 async editSvgSymbol(symbolId: string) : Promise<null> {
 return await TAURI_INVOKE("plugin:tauri-specta|edit_svg_symbol", { symbolId });
 },
-async deleteSvgSymbol(symbolId: string) : Promise<null> {
-return await TAURI_INVOKE("plugin:tauri-specta|delete_svg_symbol", { symbolId });
+async deleteSvgSymbols(symbolIds: string[]) : Promise<null> {
+return await TAURI_INVOKE("plugin:tauri-specta|delete_svg_symbols", { symbolIds });
 },
 async saveNewFile() : Promise<null> {
 return await TAURI_INVOKE("plugin:tauri-specta|save_new_file");

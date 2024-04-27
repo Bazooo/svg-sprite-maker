@@ -3,7 +3,7 @@
     import SymbolButton from './components/SymbolButton.svelte'
     import FileHoverIndicator from './components/FileHoverIndicator.svelte'
     import { onMount } from 'svelte'
-    import { activeSymbolId, applicationSettings, openedFooterWindow, sprite, symbolIds } from './store'
+    import { activeSymbolIds, applicationSettings, openedFooterWindow, sprite, symbolIds } from './store'
     import Footer from './components/Footer/Footer.svelte'
     import Settings from './components/FooterWindows/Settings.svelte'
     import { handleShortcut } from './shortcuts'
@@ -11,8 +11,15 @@
     import ToolBar from './components/ToolBar/ToolBar.svelte'
     import { commands, events } from './types/bindings'
 
-    const setActiveSymbolId = (id: string) => () => {
-        activeSymbolId.set(id)
+    const toggleActiveSymbolId = (id: string) => (event: MouseEvent) => {
+        if (event.shiftKey) {
+            activeSymbolIds.update((symbols) => {
+                return symbols.includes(id) ? symbols.filter((symbol) => symbol !== id) : [...symbols, id]
+            })
+            return
+        }
+
+        activeSymbolIds.set([id])
     }
 
     onMount(() => {
@@ -65,7 +72,7 @@
                 {:else if $symbolIds.length > 0}
                     <div class="symbols-grid grid justify-center gap-4 p-3">
                         {#each $symbolIds as symbolId (symbolId)}
-                            <SymbolButton {symbolId} on:click={setActiveSymbolId(symbolId)} />
+                            <SymbolButton {symbolId} active={$activeSymbolIds.includes(symbolId)} on:click={toggleActiveSymbolId(symbolId)} />
                         {/each}
                     </div>
                 {/if}

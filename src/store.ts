@@ -14,9 +14,17 @@ export type FooterWindow = (typeof footerWindows)[number]
 
 export const sprite = writable<string | undefined>()
 export const symbolIds = writable<string[]>([])
-export const activeSymbolId = writable<string | undefined>()
+export const activeSymbolIds = writable<string[]>([])
 export const applicationSettings = writable<ApplicationConfigSettings | undefined>()
 export const openedFooterWindow = writable<FooterWindow | undefined>()
+
+export const activeSymbolId: Readable<string | undefined> = derived(activeSymbolIds, ($activeSymbolIds, set) => {
+    if ($activeSymbolIds.length === 1) {
+        set($activeSymbolIds[0])
+    } else {
+        set(undefined)
+    }
+})
 
 export const activeSymbol: Readable<SvgSymbol | undefined> = derived([activeSymbolId, sprite], ([$activeSymbolId], set) => {
     if ($activeSymbolId) {
