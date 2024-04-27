@@ -7,18 +7,26 @@
     let hovering = false
     let hovered = 0
 
-    onMount(async () => {
-        const unlistenHover = await listen('tauri://file-drop-hover', () => {
-            hovering = true
-        })
+    onMount(() => {
+        let unlistenHover: () => unknown
+        let unlistenHoverStop: () => unknown
+        let unlistenFilesHovered: () => unknown
 
-        const unlistenHoverStop = await events.filesHoverStoppedEvent.listen(() => {
-            hovering = false
-        })
+        const mount = async () => {
+            unlistenHover = await listen('tauri://file-drop-hover', () => {
+                hovering = true
+            })
 
-        const unlistenFilesHovered = await events.filesHoveredEvent.listen((event) => {
-            hovered = event.payload
-        })
+            unlistenHoverStop = await events.filesHoverStoppedEvent.listen(() => {
+                hovering = false
+            })
+
+            unlistenFilesHovered = await events.filesHoveredEvent.listen((event) => {
+                hovered = event.payload
+            })
+        }
+
+        void mount()
 
         return () => {
             unlistenHover()

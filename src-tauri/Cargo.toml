@@ -10,16 +10,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.5", features = [] }
+tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1.5", features = [ "dialog-confirm", "dialog-save"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+tauri = { version = "1", features = [ "dialog-confirm", "dialog-save"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 svg_sprite_parser = { path = "svg_sprite_parser" }
-tempfile = "3.8.1"
-xml-rs = "0.8.19"
-derive_builder = "0.12.0"
+tempfile = "3"
+xml-rs = "0"
+derive_builder = "0"
 specta = "=2.0.0-rc.7"
 tauri-specta = { version = "=2.0.0-rc.4", features = ["typescript"] }
 

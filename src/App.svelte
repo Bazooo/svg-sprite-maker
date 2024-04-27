@@ -15,24 +15,32 @@
         activeSymbolId.set(id)
     }
 
-    onMount(async () => {
-        const currentApplicationSettings = await commands.getAppSettings()
-        if (currentApplicationSettings) {
-            applicationSettings.set(currentApplicationSettings)
+    onMount(() => {
+        let unlistenSpriteChanged: () => unknown
+        let unlistenEditorNotSet: () => unknown
+        let unlistenSettingsChanged: () => unknown
+
+        const mount = async () => {
+            const currentApplicationSettings = await commands.getAppSettings()
+            if (currentApplicationSettings) {
+                applicationSettings.set(currentApplicationSettings)
+            }
+
+            unlistenSpriteChanged = await events.spriteChangedEvent.listen((event) => {
+                symbolIds.set(event.payload.ids)
+                sprite.set(event.payload.sprite)
+            })
+
+            unlistenEditorNotSet = await events.editorNotSetEvent.listen(() => {
+                openedFooterWindow.set('settings')
+            })
+
+            unlistenSettingsChanged = await events.settingsChangedEvent.listen((event) => {
+                applicationSettings.set(event.payload)
+            })
         }
 
-        const unlistenSpriteChanged = await events.spriteChangedEvent.listen((event) => {
-            symbolIds.set(event.payload.ids)
-            sprite.set(event.payload.sprite)
-        })
-
-        const unlistenEditorNotSet = await events.editorNotSetEvent.listen(() => {
-            openedFooterWindow.set('settings')
-        })
-
-        const unlistenSettingsChanged = await events.settingsChangedEvent.listen((event) => {
-            applicationSettings.set(event.payload)
-        })
+        void mount()
 
         return () => {
             unlistenSpriteChanged()

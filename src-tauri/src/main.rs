@@ -54,12 +54,10 @@ fn main() {
                 EditorNotSetEvent
             ]);
 
-        let header = "// @ts-nocheck\n// eslint-disable\n";
-
         // Only export on non-release builds
         #[cfg(debug_assertions)]
         let specta_builder = specta_builder.path("../src/types/bindings.ts")
-            .header(header);
+            .header("// @ts-nocheck\n// eslint-disable\n");
 
         specta_builder.into_plugin()
     };
