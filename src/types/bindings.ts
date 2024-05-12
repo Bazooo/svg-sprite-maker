@@ -42,8 +42,8 @@ return await TAURI_INVOKE("plugin:tauri-specta|set_transparency_grid_colors", { 
 async resetAppState() : Promise<boolean> {
 return await TAURI_INVOKE("plugin:tauri-specta|reset_app_state");
 },
-async searchSymbolsById(query: string) : Promise<string[]> {
-return await TAURI_INVOKE("plugin:tauri-specta|search_symbols_by_id", { query });
+async searchSymbols(query: string) : Promise<string[]> {
+return await TAURI_INVOKE("plugin:tauri-specta|search_symbols", { query });
 }
 }
 

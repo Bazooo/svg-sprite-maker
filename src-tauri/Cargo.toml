@@ -22,6 +22,7 @@ xml-rs = "0"
 derive_builder = "0"
 specta = "=2.0.0-rc.7"
 tauri-specta = { version = "=2.0.0-rc.4", features = ["typescript"] }
+regex = "1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

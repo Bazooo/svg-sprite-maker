@@ -1,13 +1,13 @@
 <script lang="ts">
     import { symbolIds } from '../../store'
-    import type { KeyboardEventHandler } from 'svelte/elements'
+    import type { FormEventHandler } from 'svelte/elements'
     import { mdiMagnify } from '@mdi/js'
     import { commands } from '../../types/bindings'
 
-    const searchIds: KeyboardEventHandler<HTMLInputElement> = async (event) => {
+    const searchSymbols: FormEventHandler<HTMLInputElement> = async (event) => {
         const query = event.currentTarget.value
 
-        const ids = await commands.searchSymbolsById(query)
+        const ids = await commands.searchSymbols(query)
         symbolIds.set(ids)
     }
 </script>
@@ -17,6 +17,6 @@
         <svg class="h-5 w-5 fill-current text-slate-600" viewBox="0 0 24 24">
             <path d={mdiMagnify} />
         </svg>
-        <input type="text" class="bg-transparent placeholder-slate-300 outline-0" placeholder="Search ID..." on:input={searchIds} />
+        <input type="text" class="bg-transparent placeholder-slate-300 outline-0 w-full placeholder:text-sm" placeholder="Search any ID, #id, [attribute] or [attribute=value] ..." on:input={searchSymbols} />
     </label>
 </aside>

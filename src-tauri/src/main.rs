@@ -6,9 +6,10 @@ mod events;
 mod config;
 
 use svg_sprite_parser::parser::{get_svg_type_from_file, SvgType};
+use regex::Regex;
 use tauri::{FileDropEvent, Manager, WindowEvent};
 use tauri::api::dialog;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -42,7 +43,7 @@ fn main() {
                 set_editor_path,
                 set_transparency_grid_colors,
                 reset_app_state,
-                search_symbols_by_id,
+                search_symbols,
             ])
             .events(tauri_specta::collect_events![
                 FilesHoveredEvent,
@@ -350,22 +351,79 @@ fn reset_app_state(state: tauri::State<'_, ApplicationState>, window: tauri::Win
     true
 }
 
+const FILTER_CHARS: [char; 3] = [',', '#', '['];
+
+#[derive(Debug)]
+struct Filter {
+    id: Option<String>,
+    attribute: Option<String>,
+    value: Option<String>,
+}
+
 #[tauri::command]
 #[specta::specta]
-fn search_symbols_by_id(query: &str, state: tauri::State<'_, ApplicationState>) -> Vec<String> {
+fn search_symbols(query: &str, state: tauri::State<'_, ApplicationState>) -> Vec<String> {
     let sprite = state.current_sprite.read().unwrap();
 
     if query.is_empty() {
         return sprite.iter().map(|symbol| symbol.id.clone()).collect();
     }
-
-    sprite.iter().filter_map(|symbol| {
-        if symbol.id.contains(&query) {
-            Some(symbol.id.clone())
-        } else {
-            None
-        }
-    }).collect()
+    
+    let contains_filter = query.chars().any(|c| FILTER_CHARS.contains(&c));
+    
+    if !contains_filter {
+        return sprite.iter().filter_map(|symbol| {
+            if symbol.id.contains(&query) {
+                Some(symbol.id.clone())
+            } else {
+                None
+            }
+        }).collect();
+    }
+    
+    let queries: Vec<_> = query.split(',').map(|q| q.trim().to_string()).collect();
+    let filters_regex = Regex::new(r"(#(?<id>[\w\-_]+))|(\[(?<attribute>\w+)(=(?<value>\w+))?])").unwrap();
+    
+    let matched_ids: HashSet<_> = queries.iter().flat_map(|query| {
+        let filters: Vec<_> = filters_regex.captures_iter(query).map(|captures| {
+            Filter {
+                id: captures.name("id").map(|m| m.as_str().to_string()),
+                attribute: captures.name("attribute").map(|m| m.as_str().to_string()),
+                value: captures.name("value").map(|m| m.as_str().to_string()),
+            }
+        }).collect();
+        
+        println!("{:?}", filters);
+        
+        sprite.iter().filter_map(move |symbol| {
+            let matches = filters.iter().any(|filter| {
+                if let Some(filter_id) = &filter.id {
+                    println!("{} != {}", symbol.id, filter_id);
+                    if symbol.id.ne(filter_id) {
+                        return false;
+                    }
+                }
+                
+                if let Some(filter_attribute) = &filter.attribute {
+                    let Some(value) = symbol.attributes.get(filter_attribute) else {
+                        return false;
+                    };
+                    
+                    if let Some(filter_value) = &filter.value {
+                        return filter_value == value;
+                    }
+                }
+                
+                true
+            });
+            
+            if matches {
+                Some(symbol.id.clone())
+            } else {
+                None
+            }
+        })
+    }).collect();
+    
+    matched_ids.into_iter().collect()
 }
-
-// todo: filtering symbols by invalid / duplicate / colored

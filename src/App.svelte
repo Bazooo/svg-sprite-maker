@@ -61,7 +61,7 @@
     <div class="relative flex grow overflow-hidden">
         <FileHoverIndicator />
         <div class="flex grow flex-col">
-            {#if $symbolIds.length > 0}
+            {#if $sprite}
                 <ToolBar />
             {/if}
             <main class="grow overflow-y-auto">
@@ -69,7 +69,11 @@
                     <div class="flex h-full w-full items-center justify-center">
                         <span class="select-none">Drop svg file(s)</span>
                     </div>
-                {:else if $symbolIds.length > 0}
+                {:else if $symbolIds.length === 0}
+                    <div class="flex h-full w-full items-center justify-center">
+                        <span class="select-none">No symbols</span>
+                    </div>
+                {:else}
                     <div class="symbols-grid grid justify-center gap-4 p-3">
                         {#each $symbolIds as symbolId (symbolId)}
                             <SymbolButton {symbolId} active={$activeSymbolIds.includes(symbolId)} on:click={toggleActiveSymbolId(symbolId)} />
@@ -84,8 +88,7 @@
                 <Shortcuts />
             {/if}
         </div>
-
-        {#if $symbolIds.length > 0}
+        {#if $sprite}
             <SideMenu />
         {/if}
     </div>
